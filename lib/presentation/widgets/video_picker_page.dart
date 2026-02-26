@@ -443,9 +443,24 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
             ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _buildMobileBody(),
+      body: _isLoading ? _buildSkeletonGrid() : _buildMobileBody(),
+    );
+  }
+
+  /// 构建骨架屏网格
+  Widget _buildSkeletonGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(2),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
+      ),
+      itemCount: 18,
+      itemBuilder: (context, index) => Container(
+        color: AppColors.surface,
+        child: const _ShimmerEffect(),
+      ),
     );
   }
 
@@ -686,26 +701,6 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
               child: Container(color: Colors.transparent),
             ),
           ),
-          // 播放按钮（最上层）
-          Center(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _previewVideo(video),
-              child: Container(
-                width: 60,
-                height: 60,
-                alignment: Alignment.center,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      shape: BoxShape.circle),
-                  child: const Icon(Icons.play_arrow_rounded,
-                      color: Colors.white, size: 24),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -739,6 +734,8 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
   bool _isLoading = true;
   bool _loadStarted = false;
 
+  bool get isReady => _thumbnail != null;
+
   @override
   bool get wantKeepAlive => true;
 
@@ -760,7 +757,6 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
   void _checkCacheAndLoad() {
     if (_loadStarted) return;
 
-    // 检查缓存
     if (widget.cache.containsKey(widget.videoId)) {
       _thumbnail = widget.cache[widget.videoId] as Uint8List?;
       _isLoading = false;
@@ -768,14 +764,12 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
       return;
     }
 
-    // 检查是否已失败
     if (widget.failedSet.contains(widget.videoId)) {
       _isLoading = false;
       _loadStarted = true;
       return;
     }
 
-    // 开始加载
     _loadStarted = true;
     _loadThumbnail();
   }
@@ -792,7 +786,6 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
         return;
       }
 
-      // 同时加载缩略图和视频路径
       final results = await Future.wait([
         entity.thumbnailDataWithSize(const ThumbnailSize(200, 200)),
         entity.file,
@@ -801,7 +794,6 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
       final thumbnail = results[0] as Uint8List?;
       final file = results[1] as File?;
 
-      // 缓存视频路径
       if (file != null && widget.onPathLoaded != null) {
         widget.onPathLoaded!(file.path);
       }
@@ -836,27 +828,86 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
     super.build(context);
 
     if (_thumbnail != null) {
-      return Image.memory(_thumbnail!, fit: BoxFit.cover);
-    }
-
-    if (_isLoading) {
-      return Container(
-        color: AppColors.surface,
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.memory(_thumbnail!, fit: BoxFit.cover),
+          // 加载完成后显示播放按钮
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  shape: BoxShape.circle),
+              child: const Icon(Icons.play_arrow_rounded,
+                  color: Colors.white, size: 24),
+            ),
           ),
-        ),
+        ],
       );
     }
 
-    return Container(
-      color: AppColors.surface,
-      child: const Center(
-        child: Icon(Icons.videocam, color: AppColors.textSecondary, size: 40),
-      ),
+    // 加载中或失败时显示灰色背景，不显示loading和播放按钮
+    return Container(color: AppColors.surface);
+  }
+}
+
+/// 骨架屏闪烁效果
+class _ShimmerEffect extends StatefulWidget {
+  const _ShimmerEffect();
+
+  @override
+  State<_ShimmerEffect> createState() => _ShimmerEffectState();
+}
+
+class _ShimmerEffectState extends State<_ShimmerEffect>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
+    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: const [
+                Color(0xFF2A2A2A),
+                Color(0xFF3A3A3A),
+                Color(0xFF2A2A2A),
+              ],
+              stops: [
+                _animation.value - 0.3,
+                _animation.value,
+                _animation.value + 0.3,
+              ],
+            ).createShader(bounds);
+          },
+          child: Container(color: AppColors.surface),
+        );
+      },
     );
   }
 }
