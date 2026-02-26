@@ -84,6 +84,9 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
   /// 是否正在加载
   bool _isLoading = true;
 
+  /// 已加载缩略图的视频ID集合
+  final Set<String> _loadedThumbnails = {};
+
   /// 是否为受限权限（iOS Limited Photos Library）
   bool _isLimitedPermission = false;
 
@@ -561,6 +564,7 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
       _itemKeys.clear();
       _selectedVideos.clear();
       _failedThumbnails.clear();
+      _loadedThumbnails.clear();
     });
     _loadVideos();
   }
@@ -626,7 +630,6 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
   /// 构建单个视频项
   ///
   /// 显示缩略图、时长、选中状态和播放按钮。
-  /// 使用独立的_VideoThumbnailWidget避免不必要的重建。
   Widget _buildVideoItem(AssetEntity video) {
     final isSelected = _selectedVideos.contains(video);
 
@@ -637,13 +640,20 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // 缩略图（使用独立Widget管理加载状态）
+          // 缩略图
           _VideoThumbnailWidget(
             videoId: video.id,
             cache: _thumbnailCache,
             failedSet: _failedThumbnails,
             onPathLoaded: (path) {
               _videoPathCache[video.id] = path;
+            },
+            onThumbnailLoaded: () {
+              if (!_loadedThumbnails.contains(video.id)) {
+                setState(() {
+                  _loadedThumbnails.add(video.id);
+                });
+              }
             },
           ),
           // 选中遮罩
@@ -694,8 +704,8 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
               ),
             ),
           ),
-          // 播放按钮（最上层，缩略图加载完成后显示）
-          if (_thumbnailCache.containsKey(video.id))
+          // 播放按钮（最上层，只有缩略图加载完成后才显示）
+          if (_loadedThumbnails.contains(video.id))
             Center(
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -717,20 +727,19 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
 }
 
 /// 独立的缩略图Widget
-///
-/// 每个缩略图有自己的加载状态，加载完成后只更新自己，不影响父Widget。
-/// 使用AutomaticKeepAliveClientMixin保持状态，避免滚动时重新加载。
 class _VideoThumbnailWidget extends StatefulWidget {
   final String videoId;
   final Map<String, dynamic> cache;
   final Set<String> failedSet;
   final Function(String path)? onPathLoaded;
+  final VoidCallback? onThumbnailLoaded;
 
   const _VideoThumbnailWidget({
     required this.videoId,
     required this.cache,
     required this.failedSet,
     this.onPathLoaded,
+    this.onThumbnailLoaded,
   });
 
   @override
@@ -742,8 +751,6 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
   Uint8List? _thumbnail;
   bool _isLoading = true;
   bool _loadStarted = false;
-
-  bool get isReady => _thumbnail != null;
 
   @override
   bool get wantKeepAlive => true;
@@ -811,6 +818,9 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
 
       if (thumbnail != null) {
         widget.cache[widget.videoId] = thumbnail;
+        if (widget.onThumbnailLoaded != null) {
+          widget.onThumbnailLoaded!();
+        }
         setState(() {
           _thumbnail = thumbnail;
           _isLoading = false;
@@ -840,7 +850,6 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
       return Image.memory(_thumbnail!, fit: BoxFit.cover);
     }
 
-    // 加载中或失败时显示灰色背景
     return Container(color: AppColors.surface);
   }
 }
