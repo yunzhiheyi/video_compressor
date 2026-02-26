@@ -340,6 +340,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
 
   /// 检查跳过原因
   ///
+  /// 只有同时满足分辨率和画质条件才跳过
   /// 返回 null 表示不跳过，否则返回跳过原因
   String? _checkSkipReason({
     required VideoInfo video,
@@ -347,6 +348,11 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     required int targetBitrate,
     required String targetBitrateLabel,
   }) {
+    bool resolutionMet = false;
+    bool qualityMet = false;
+    String? resolutionDetail;
+    String? qualityDetail;
+
     // 检查分辨率
     if (targetHeight != null && video.width != null && video.height != null) {
       final originalWidth = video.width!;
@@ -357,18 +363,41 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
           originalWidth < originalHeight ? originalWidth : originalHeight;
 
       if (shortSide <= targetHeight) {
-        return '分辨率已满足 (${shortSide}p ≤ ${targetHeight}p)';
+        resolutionMet = true;
+        resolutionDetail = '${shortSide}p ≤ ${targetHeight}p';
       }
+    } else {
+      // 没有目标分辨率要求，视为满足
+      resolutionMet = true;
     }
 
     // 检查比特率
     if (video.bitrate != null && video.bitrate! > 0 && targetBitrate > 0) {
       if (video.bitrate! <= targetBitrate) {
+        qualityMet = true;
         final originalBitrateMbps =
             (video.bitrate! / 1000000).toStringAsFixed(1);
         final targetBitrateMbps = (targetBitrate / 1000000).toStringAsFixed(1);
-        return '画质已满足 ($originalBitrateMbps Mbps ≤ $targetBitrateMbps Mbps)';
+        qualityDetail = '$originalBitrateMbps Mbps ≤ $targetBitrateMbps Mbps';
       }
+    } else {
+      // 无法获取比特率，视为满足
+      qualityMet = true;
+    }
+
+    // 只有两者都满足才跳过
+    if (resolutionMet && qualityMet) {
+      final reasons = <String>[];
+      if (resolutionDetail != null) {
+        reasons.add('Resolution: $resolutionDetail');
+      }
+      if (qualityDetail != null) {
+        reasons.add('Quality: $qualityDetail');
+      }
+      if (reasons.isEmpty) {
+        return 'Already meets target settings';
+      }
+      return 'Skipped - ${reasons.join(', ')}';
     }
 
     return null;

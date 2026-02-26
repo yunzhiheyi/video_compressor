@@ -444,22 +444,18 @@ class _VideoListItemState extends State<VideoListItem> {
       );
     }
 
-    // 跳过：显示跳过原因
+    // 跳过：显示跳过原因（警告样式）
     if (task.isSkipped) {
       return Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Row(
           children: [
-            Icon(Icons.skip_next,
-                color: AppColors.textSecondary.withValues(alpha: 0.7),
-                size: 12),
+            const Icon(Icons.warning_amber, color: AppColors.warning, size: 12),
             const SizedBox(width: 4),
             Expanded(
               child: Text(
                 task.skipReason ?? 'Skipped',
-                style: TextStyle(
-                    color: AppColors.textSecondary.withValues(alpha: 0.7),
-                    fontSize: 11),
+                style: const TextStyle(color: AppColors.warning, fontSize: 11),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
