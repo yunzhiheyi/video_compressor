@@ -16,7 +16,8 @@ enum CompressTaskStatus {
   running, // 进行中
   completed, // 已完成
   failed, // 失败
-  cancelled // 已取消
+  cancelled, // 已取消
+  skipped // 已跳过
 }
 
 /// 压缩任务模型类
@@ -51,6 +52,9 @@ class CompressTask extends Equatable {
   /// 错误信息（失败时）
   final String? errorMessage;
 
+  /// 跳过原因（跳过时）
+  final String? skipReason;
+
   const CompressTask({
     required this.id,
     required this.video,
@@ -62,6 +66,7 @@ class CompressTask extends Equatable {
     this.compressedWidth,
     this.compressedHeight,
     this.errorMessage,
+    this.skipReason,
   });
 
   /// 是否已完成
@@ -78,6 +83,9 @@ class CompressTask extends Equatable {
 
   /// 是否已排队
   bool get isQueued => status == CompressTaskStatus.queued;
+
+  /// 是否已跳过
+  bool get isSkipped => status == CompressTaskStatus.skipped;
 
   /// 计算压缩比率（百分比）
   ///
@@ -112,6 +120,7 @@ class CompressTask extends Equatable {
     int? compressedWidth,
     int? compressedHeight,
     String? errorMessage,
+    String? skipReason,
   }) {
     return CompressTask(
       id: id ?? this.id,
@@ -124,6 +133,7 @@ class CompressTask extends Equatable {
       compressedWidth: compressedWidth ?? this.compressedWidth,
       compressedHeight: compressedHeight ?? this.compressedHeight,
       errorMessage: errorMessage ?? this.errorMessage,
+      skipReason: skipReason ?? this.skipReason,
     );
   }
 
@@ -139,5 +149,6 @@ class CompressTask extends Equatable {
         compressedWidth,
         compressedHeight,
         errorMessage,
+        skipReason,
       ];
 }

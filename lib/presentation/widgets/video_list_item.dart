@@ -444,6 +444,31 @@ class _VideoListItemState extends State<VideoListItem> {
       );
     }
 
+    // 跳过：显示跳过原因
+    if (task.isSkipped) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Row(
+          children: [
+            Icon(Icons.skip_next,
+                color: AppColors.textSecondary.withValues(alpha: 0.7),
+                size: 12),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                task.skipReason ?? 'Skipped',
+                style: TextStyle(
+                    color: AppColors.textSecondary.withValues(alpha: 0.7),
+                    fontSize: 11),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     // 排队中
     if (task.isQueued) {
       return const Padding(
@@ -517,6 +542,7 @@ class _VideoListItemState extends State<VideoListItem> {
           if (widget.task != null &&
               (widget.task!.isComplete ||
                   widget.task!.isFailed ||
+                  widget.task!.isSkipped ||
                   widget.task!.isRunning ||
                   widget.task!.isQueued))
             _buildIconButton(
@@ -528,8 +554,9 @@ class _VideoListItemState extends State<VideoListItem> {
       );
     }
 
-    // 移动端：压缩完成后显示右箭头
-    if (widget.task != null && widget.task!.isComplete) {
+    // 移动端：压缩完成或跳过后显示右箭头
+    if (widget.task != null &&
+        (widget.task!.isComplete || widget.task!.isSkipped)) {
       return GestureDetector(
         onTap: widget.onTapDetail,
         child: const Icon(Icons.chevron_right,

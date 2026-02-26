@@ -278,34 +278,100 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
       return;
     }
 
-    final newTasks = videosWithoutTask.map((video) {
-      return CompressTask(
-        id: _uuid.v4(),
+    final newTasks = <CompressTask>[];
+    final targetBitrate = latestConfig.bitrate;
+
+    for (final video in videosWithoutTask) {
+      // 检查是否应该跳过
+      final skipReason = _checkSkipReason(
         video: video,
-        config: latestConfig,
-        status: CompressTaskStatus.queued,
+        targetHeight: targetHeight,
+        targetBitrate: targetBitrate,
+        targetBitrateLabel: latestConfig.qualityLabel,
       );
-    }).toList();
+
+      if (skipReason != null) {
+        // 创建跳过的任务
+        newTasks.add(CompressTask(
+          id: _uuid.v4(),
+          video: video,
+          config: latestConfig,
+          status: CompressTaskStatus.skipped,
+          skipReason: skipReason,
+        ));
+        debugPrint('[LocalCompressBloc] Skipped ${video.name}: $skipReason');
+      } else {
+        // 创建正常任务
+        newTasks.add(CompressTask(
+          id: _uuid.v4(),
+          video: video,
+          config: latestConfig,
+          status: CompressTaskStatus.queued,
+        ));
+      }
+    }
 
     final allTasks = [...state.tasks, ...newTasks];
+
+    // 检查是否有需要压缩的任务（非跳过）
+    final hasCompressTasks = newTasks.any((t) => !t.isSkipped);
 
     emit(
       state.copyWith(
         tasks: allTasks,
-        isCompressing: true,
+        isCompressing: hasCompressTasks,
         config: latestConfig,
       ),
     );
 
-    // 将任务ID加入队列
-    for (final task in newTasks) {
+    // 将非跳过任务加入队列
+    for (final task in newTasks.where((t) => !t.isSkipped)) {
       _pendingQueue.add(task.id);
     }
 
-    debugPrint('[LocalCompressBloc] Created ${newTasks.length} new tasks');
+    debugPrint(
+        '[LocalCompressBloc] Created ${newTasks.length} tasks (${newTasks.where((t) => t.isSkipped).length} skipped)');
 
     // 开始处理队列
-    add(const _ProcessQueue());
+    if (_pendingQueue.isNotEmpty) {
+      add(const _ProcessQueue());
+    }
+  }
+
+  /// 检查跳过原因
+  ///
+  /// 返回 null 表示不跳过，否则返回跳过原因
+  String? _checkSkipReason({
+    required VideoInfo video,
+    required int? targetHeight,
+    required int targetBitrate,
+    required String targetBitrateLabel,
+  }) {
+    // 检查分辨率
+    if (targetHeight != null && video.width != null && video.height != null) {
+      final originalWidth = video.width!;
+      final originalHeight = video.height!;
+
+      // 短边是较小的那个维度
+      final shortSide =
+          originalWidth < originalHeight ? originalWidth : originalHeight;
+
+      if (shortSide <= targetHeight) {
+        return '分辨率已满足 (${shortSide}p ≤ ${targetHeight}p)';
+      }
+    }
+
+    // 检查比特率
+    if (video.bitrate != null && video.bitrate! > 0 && targetBitrate > 0) {
+      if (video.bitrate! <= targetBitrate) {
+        final originalBitrateMbps =
+            (video.bitrate! / 1000000).toStringAsFixed(1);
+        final targetBitrateMbps = (targetBitrate / 1000000).toStringAsFixed(1);
+        return '画质已满足 ($originalBitrateMbps Mbps ≤ $targetBitrateMbps Mbps)';
+      }
+    }
+
+    return null;
   }
 
   /// 处理任务队列
@@ -553,8 +619,9 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     ClearCompleted event,
     Emitter<LocalCompressState> emit,
   ) {
-    final tasks =
-        state.tasks.where((t) => !t.isComplete && !t.isFailed).toList();
+    final tasks = state.tasks
+        .where((t) => !t.isComplete && !t.isFailed && !t.isSkipped)
+        .toList();
     emit(state.copyWith(tasks: tasks));
   }
 
