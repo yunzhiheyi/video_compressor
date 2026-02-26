@@ -27,6 +27,7 @@ void showVideoOverlay({
   required String videoPath,
   required Rect startRect,
   Uint8List? thumbnail,
+  double? aspectRatio,
   VideoOverlayController? controller,
 }) {
   final overlayController = controller ?? VideoOverlayController();
@@ -38,6 +39,7 @@ void showVideoOverlay({
       videoPath: videoPath,
       startRect: startRect,
       thumbnail: thumbnail,
+      aspectRatio: aspectRatio,
       onClose: () {
         overlayEntry.remove();
         overlayController._overlayEntry = null;
@@ -55,12 +57,14 @@ class _VideoOverlayView extends StatefulWidget {
   final String videoPath;
   final Rect startRect;
   final Uint8List? thumbnail;
+  final double? aspectRatio;
   final VoidCallback onClose;
 
   const _VideoOverlayView({
     required this.videoPath,
     required this.startRect,
     this.thumbnail,
+    this.aspectRatio,
     required this.onClose,
   });
 
@@ -83,7 +87,7 @@ class _VideoOverlayViewState extends State<_VideoOverlayView>
   late Rect _startRect;
   late Rect _targetRect;
   late Size _screenSize;
-  double _aspectRatio = 9.0 / 16.0;
+  late double _aspectRatio;
 
   double _dragOffsetX = 0.0;
   double _dragOffsetY = 0.0;
@@ -104,6 +108,8 @@ class _VideoOverlayViewState extends State<_VideoOverlayView>
       _initialized = true;
       _screenSize = MediaQuery.of(context).size;
       _startRect = widget.startRect;
+      // 使用传入的宽高比，如果没有则默认9:16
+      _aspectRatio = widget.aspectRatio ?? (9.0 / 16.0);
       _calculateTargetRect(_aspectRatio);
       _initAnimations();
       _initVideo();

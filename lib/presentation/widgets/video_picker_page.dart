@@ -241,12 +241,16 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
     final thumbnail = _thumbnailCache[video.id];
     final itemKey = _itemKeys[video.id];
 
+    // 获取视频宽高比（考虑旋转方向）
+    final aspectRatio = video.orientatedWidth / video.orientatedHeight;
+
     if (cachedPath != null && itemKey != null) {
       showVideoOverlay(
         context: context,
         videoPath: cachedPath,
         startRect: getWidgetGlobalRect(itemKey),
         thumbnail: thumbnail,
+        aspectRatio: aspectRatio,
         controller: _overlayController,
       );
     } else {
@@ -262,11 +266,14 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
     if (file != null && mounted) {
       _videoPathCache[video.id] = file.path;
       final itemKey = _itemKeys[video.id];
+      // 获取视频宽高比（考虑旋转方向）
+      final aspectRatio = video.orientatedWidth / video.orientatedHeight;
       showVideoOverlay(
         context: context,
         videoPath: file.path,
         startRect: itemKey != null ? getWidgetGlobalRect(itemKey) : Rect.zero,
         thumbnail: _thumbnailCache[video.id],
+        aspectRatio: aspectRatio,
         controller: _overlayController,
       );
     }
