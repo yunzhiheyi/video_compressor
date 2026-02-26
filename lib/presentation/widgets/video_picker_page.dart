@@ -444,6 +444,7 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
             ),
             onPressed: () => Navigator.pop(context)),
         title: _buildAlbumDropdown(),
+        centerTitle: true,
         backgroundColor: AppColors.surface,
         actions: [
           if (_selectedVideos.isNotEmpty)
