@@ -133,12 +133,13 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
     if (!mounted) return;
 
     if (albums.isNotEmpty) {
-      setState(() {
-        _albums = albums;
-        _selectedAlbum = albums.first;
-        _isLoading = false;
-      });
-      _loadVideos();
+      _albums = albums;
+      _selectedAlbum = albums.first;
+      // 先加载视频列表，完成后再关闭loading
+      await _loadVideos();
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     } else {
       setState(() => _isLoading = false);
     }

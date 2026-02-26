@@ -83,6 +83,7 @@ class _VideoOverlayViewState extends State<_VideoOverlayView>
   late Rect _startRect;
   late Rect _targetRect;
   late Size _screenSize;
+  double _aspectRatio = 9.0 / 16.0;
 
   double _dragOffsetX = 0.0;
   double _dragOffsetY = 0.0;
@@ -103,17 +104,28 @@ class _VideoOverlayViewState extends State<_VideoOverlayView>
       _initialized = true;
       _screenSize = MediaQuery.of(context).size;
       _startRect = widget.startRect;
-      _calculateTargetRect();
+      _calculateTargetRect(_aspectRatio);
       _initAnimations();
       _initVideo();
     }
   }
 
-  void _calculateTargetRect() {
-    double width = _screenSize.width;
-    double height = _screenSize.height;
+  void _calculateTargetRect(double aspectRatio) {
+    _aspectRatio = aspectRatio;
 
-    _targetRect = Rect.fromLTWH(0, 0, width, height);
+    double targetWidth = _screenSize.width;
+    double targetHeight = targetWidth / aspectRatio;
+
+    if (targetHeight > _screenSize.height) {
+      targetHeight = _screenSize.height;
+      targetWidth = targetHeight * aspectRatio;
+    }
+
+    _targetRect = Rect.fromCenter(
+      center: Offset(_screenSize.width / 2, _screenSize.height / 2),
+      width: targetWidth,
+      height: targetHeight,
+    );
   }
 
   void _initAnimations() {
@@ -145,6 +157,10 @@ class _VideoOverlayViewState extends State<_VideoOverlayView>
     try {
       await _videoController!.initialize();
       if (mounted && !_isClosing) {
+        // 根据视频实际宽高比更新目标rect
+        final videoAspect = _videoController!.value.aspectRatio;
+        _calculateTargetRect(videoAspect);
+
         setState(() {
           _videoReady = true;
         });
