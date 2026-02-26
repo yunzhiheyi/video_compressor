@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:ffmpeg_kit_flutter_new_min_gpl/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_new_min_gpl/ffprobe_kit.dart';
-import 'package:ffmpeg_kit_flutter_new_min_gpl/return_code.dart';
-import 'package:ffmpeg_kit_flutter_new_min_gpl/statistics.dart';
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/ffprobe_kit.dart';
+import 'package:ffmpeg_kit_flutter_new/return_code.dart';
+import 'package:ffmpeg_kit_flutter_new/statistics.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// FFmpeg服务类
@@ -395,8 +395,13 @@ class FFmpegService {
     final buffer = StringBuffer();
     buffer.write('-i "$inputPath"');
 
-    // 使用iOS硬件加速编码器
-    buffer.write(' -c:v h264_videotoolbox');
+    String videoCodec;
+    if (Platform.isAndroid) {
+      videoCodec = 'libx264';
+    } else {
+      videoCodec = 'h264_videotoolbox';
+    }
+    buffer.write(' -c:v $videoCodec');
 
     // 比特率控制
     final targetBitrate = bitrate <= 0 ? 2500000 : bitrate;
