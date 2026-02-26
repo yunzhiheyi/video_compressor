@@ -694,14 +694,22 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
               ),
             ),
           ),
-          // 选择点击区域（在播放按钮下面）
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () => _toggleSelection(video),
-              child: Container(color: Colors.transparent),
+          // 播放按钮（最上层，缩略图加载完成后显示）
+          if (_thumbnailCache.containsKey(video.id))
+            Center(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _previewVideo(video),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      shape: BoxShape.circle),
+                  child: const Icon(Icons.play_arrow_rounded,
+                      color: Colors.white, size: 24),
+                ),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -829,26 +837,10 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
     super.build(context);
 
     if (_thumbnail != null) {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.memory(_thumbnail!, fit: BoxFit.cover),
-          // 加载完成后显示播放按钮
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  shape: BoxShape.circle),
-              child: const Icon(Icons.play_arrow_rounded,
-                  color: Colors.white, size: 24),
-            ),
-          ),
-        ],
-      );
+      return Image.memory(_thumbnail!, fit: BoxFit.cover);
     }
 
-    // 加载中或失败时显示灰色背景，不显示loading和播放按钮
+    // 加载中或失败时显示灰色背景
     return Container(color: AppColors.surface);
   }
 }
