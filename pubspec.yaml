@@ -1,0 +1,34 @@
+name: video_compressor
+description: A professional video compression app.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.8
+  photo_manager: ^3.8.3
+  file_picker: ^10.3.10
+  path_provider: ^2.1.1
+  video_player: ^2.10.1
+  shared_preferences: ^2.5.3
+  uuid: ^4.2.1
+  path: ^1.8.3
+  ffmpeg_kit_flutter_new_min_gpl: ^2.1.1
+  gal: ^2.3.0
+  desktop_drop: ^0.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  bloc_test: ^9.1.5
+  mocktail: ^1.0.1
+
+flutter:
+  uses-material-design: true
