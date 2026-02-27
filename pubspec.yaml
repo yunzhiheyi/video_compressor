@@ -17,6 +17,7 @@ dependencies:
   path_provider: ^2.1.1
   video_player: ^2.10.1
   chewie: ^1.12.1
+  package_info_plus: ^8.0.0
   shared_preferences: ^2.5.3
   uuid: ^4.2.1
   path: ^1.8.3
