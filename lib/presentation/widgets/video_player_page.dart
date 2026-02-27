@@ -59,7 +59,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         optionsTranslation: OptionsTranslation(
           playbackSpeedButtonText: 'Speed',
         ),
-        theme: _buildChewieTheme(),
         materialProgressColors: ChewieProgressColors(
           playedColor: AppColors.primary,
           handleColor: AppColors.primary,
@@ -79,15 +78,17 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
               children: [
                 const Icon(Icons.error_outline, color: Colors.white, size: 48),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'Video playback failed',
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: Colors.white),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   errorMessage,
                   style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 12,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -106,16 +107,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         });
       }
     }
-  }
-
-  ChewieThemeData _buildChewieTheme() {
-    return ChewieThemeData(
-      backgroundColor: Colors.black,
-      controlBarBackgroundColor: Colors.black.withValues(alpha: 0.7),
-      controlBarHeight: 50,
-      iconColor: Colors.white,
-      textStyle: const TextStyle(color: Colors.white),
-    );
   }
 
   @override
