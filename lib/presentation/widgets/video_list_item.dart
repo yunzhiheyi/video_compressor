@@ -281,29 +281,6 @@ class _VideoListItemState extends State<VideoListItem> {
                   child:
                       Icon(Icons.videocam, color: AppColors.primary, size: 28),
                 ),
-              // 视频大小 - 左上角
-              Positioned(
-                top: 0,
-                right: 0,
-                left: 0,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.7)
-                        ]),
-                  ),
-                  child: Text(
-                    widget.video.sizeFormatted,
-                    style: const TextStyle(color: Colors.white, fontSize: 10),
-                  ),
-                ),
-              ),
               // 视频时长 - 右下角
               Positioned(
                 bottom: 0,
@@ -352,14 +329,22 @@ class _VideoListItemState extends State<VideoListItem> {
 
   /// 构建视频信息区域
   Widget _buildInfo() {
+    final video = widget.video;
+    final infoStyle = TextStyle(
+      color: widget.isDesktop
+          ? Colors.white.withValues(alpha: 0.6)
+          : AppColors.textSecondary,
+      fontSize: 11,
+    );
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 视频名称
           Text(
-            widget.video.name ?? '',
+            video.name ?? '',
             style: TextStyle(
               color: widget.isDesktop ? Colors.white : AppColors.textPrimary,
               fontSize: 14,
@@ -367,6 +352,22 @@ class _VideoListItemState extends State<VideoListItem> {
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          // 基本信息
+          Wrap(
+            spacing: 8,
+            runSpacing: 2,
+            children: [
+              if (video.width != null && video.height != null)
+                Text('${video.width}x${video.height}', style: infoStyle),
+              if (video.frameRate != null)
+                Text('${video.frameRate!.toStringAsFixed(0)} fps',
+                    style: infoStyle),
+              if (video.bitrate != null)
+                Text(_formatBitrate(video.bitrate!), style: infoStyle),
+              Text(video.sizeFormatted, style: infoStyle),
+            ],
           ),
           // 码率警告
           if (widget.bitrateWarning != null)
@@ -393,6 +394,15 @@ class _VideoListItemState extends State<VideoListItem> {
         ],
       ),
     );
+  }
+
+  String _formatBitrate(int bitrate) {
+    if (bitrate >= 1000000) {
+      return '${(bitrate / 1000000).toStringAsFixed(1)} Mbps';
+    } else if (bitrate >= 1000) {
+      return '${(bitrate / 1000).toStringAsFixed(0)} Kbps';
+    }
+    return '$bitrate bps';
   }
 
   /// 构建任务状态显示

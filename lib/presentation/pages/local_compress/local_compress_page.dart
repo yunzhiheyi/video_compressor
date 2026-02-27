@@ -330,7 +330,10 @@ class _VideoCompressPageState extends State<_VideoCompressPage>
     final videoDataList = await Navigator.push<List<Map<String, dynamic>>>(
       context,
       MaterialPageRoute(
-        builder: (context) => const VideoPickerPage(maxCount: 10),
+        builder: (context) => VideoPickerPage(
+          maxCount: 10,
+          ffmpegService: context.read<FFmpegService>(),
+        ),
         fullscreenDialog: true,
       ),
     );

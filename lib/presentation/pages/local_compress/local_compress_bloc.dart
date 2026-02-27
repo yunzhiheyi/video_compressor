@@ -155,6 +155,8 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
                 milliseconds: ((videoData['duration'] as num) * 1000).toInt())
             : null,
         thumbnailBytes: videoData['thumbnailBytes'] as Uint8List?,
+        bitrate: videoData['bitrate'] as int?,
+        frameRate: videoData['frameRate'] as double?,
       );
       newVideos.add(videoInfo);
     }

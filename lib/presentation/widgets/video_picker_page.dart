@@ -18,6 +18,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/loading_overlay.dart';
+import '../../../services/ffmpeg_service.dart';
 import 'video_overlay_player.dart';
 
 /// 视频选择器页面组件
@@ -29,9 +31,13 @@ class VideoPickerPage extends StatefulWidget {
   /// 最大可选视频数量
   final int maxCount;
 
+  /// FFmpeg服务（用于获取帧率、码率信息）
+  final FFmpegService? ffmpegService;
+
   const VideoPickerPage({
     super.key,
     this.maxCount = 10,
+    this.ffmpegService,
   });
 
   /// 检查相册访问权限
@@ -179,18 +185,34 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
   /// 确认选择并返回结果
   ///
   /// macOS平台打开文件选择器。
-  /// 移动平台返回选中的视频数据（路径、缩略图、宽高、时长、大小）。
+  /// 移动平台返回选中的视频数据（路径、缩略图、宽高、时长、大小、帧率、码率）。
   Future<void> _confirmSelection() async {
     if (Platform.isMacOS) {
       await _pickFilesOnMacOS();
       return;
     }
 
+    LoadingOverlay.show(context);
+
     final List<Map<String, dynamic>> videoData = [];
     for (final video in _selectedVideos) {
       final file = await video.file;
       if (file != null) {
         final fileSize = await file.length();
+
+        // 获取帧率和码率信息
+        int? bitrate;
+        double? frameRate;
+        if (widget.ffmpegService != null) {
+          try {
+            final info = await widget.ffmpegService!.getVideoInfo(file.path);
+            bitrate = info['bitrate'] as int?;
+            frameRate = info['frameRate'] as double?;
+          } catch (e) {
+            debugPrint('[VideoPicker] Failed to get video info: $e');
+          }
+        }
+
         videoData.add({
           'path': file.path,
           'name': file.path.split('/').last,
@@ -199,10 +221,13 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
           'height': video.height,
           'duration': video.duration.toDouble(),
           'size': fileSize,
+          'bitrate': bitrate,
+          'frameRate': frameRate,
         });
       }
     }
 
+    LoadingOverlay.hide();
     if (mounted) Navigator.pop(context, videoData);
   }
 

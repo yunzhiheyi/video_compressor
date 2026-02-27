@@ -55,6 +55,26 @@ class TaskDetailDialog extends StatelessWidget {
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 
+  String _formatBitrate(int? bitrate) {
+    if (bitrate == null || bitrate == 0) return 'N/A';
+    if (bitrate >= 1000000) {
+      return '${(bitrate / 1000000).toStringAsFixed(1)} Mbps';
+    } else if (bitrate >= 1000) {
+      return '${(bitrate / 1000).toStringAsFixed(0)} Kbps';
+    }
+    return '$bitrate bps';
+  }
+
+  String _formatFrameRate(double? frameRate) {
+    if (frameRate == null || frameRate == 0) return 'N/A';
+    return '${frameRate.toStringAsFixed(0)} fps';
+  }
+
+  String _formatResolution(int? width, int? height) {
+    if (width == null || height == null) return 'N/A';
+    return '${width}x$height';
+  }
+
   /// 构建详情行组件
   ///
   /// [label] - 标签文本
@@ -189,14 +209,71 @@ class TaskDetailDialog extends StatelessWidget {
     }
   }
 
+  /// 构建对比行组件
+  ///
+  /// [label] - 标签文本
+  /// [before] - 原始值
+  /// [after] - 压缩后值
+  Widget _buildCompareRow(String label, String before, String after) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isDesktop
+                    ? Colors.white.withValues(alpha: 0.6)
+                    : AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              before,
+              style: TextStyle(
+                color: isDesktop
+                    ? Colors.white.withValues(alpha: 0.8)
+                    : AppColors.textSecondary,
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const Icon(Icons.arrow_forward,
+              color: AppColors.textSecondary, size: 14),
+          Expanded(
+            child: Text(
+              after,
+              style: TextStyle(
+                color: isDesktop ? Colors.white : AppColors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final video = task.video;
+    final originalResolution = _formatResolution(video.width, video.height);
+    final compressedResolution =
+        _formatResolution(task.compressedWidth, task.compressedHeight);
+
     final content = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          task.video.name ?? '',
+          video.name ?? '',
           style: TextStyle(
             color: isDesktop ? Colors.white : AppColors.textPrimary,
             fontSize: 18,
@@ -204,11 +281,12 @@ class TaskDetailDialog extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+        // 大小对比
         Row(
           children: [
             Align(
               alignment: Alignment.centerLeft,
-              child: _buildSizeInfo('Before', task.video.sizeFormatted),
+              child: _buildSizeInfo('Before', video.sizeFormatted),
             ),
             Expanded(child: Container()),
             Padding(
@@ -235,17 +313,47 @@ class TaskDetailDialog extends StatelessWidget {
             ),
           ],
         ),
-        if (task.video.duration != null ||
-            task.originalResolution.isNotEmpty ||
-            task.compressedResolution.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          if (task.video.duration != null)
-            _buildDetailRow('Duration', task.video.durationFormatted),
-          if (task.originalResolution.isNotEmpty)
-            _buildDetailRow('Original Resolution', task.originalResolution),
-          if (task.compressedResolution.isNotEmpty)
-            _buildDetailRow('Compressed Resolution', task.compressedResolution),
-        ],
+        const SizedBox(height: 16),
+        // 详细对比
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDesktop
+                ? Colors.white.withValues(alpha: 0.05)
+                : AppColors.surface,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: [
+              _buildCompareRow(
+                'Size',
+                video.sizeFormatted,
+                _formatSize(task.compressedSize),
+              ),
+              _buildCompareRow(
+                'Resolution',
+                originalResolution,
+                compressedResolution,
+              ),
+              _buildCompareRow(
+                'Bitrate',
+                _formatBitrate(video.bitrate),
+                _formatBitrate(task.config.bitrate),
+              ),
+              _buildCompareRow(
+                'Frame Rate',
+                _formatFrameRate(video.frameRate),
+                _formatFrameRate(video.frameRate),
+              ),
+              if (video.duration != null)
+                _buildCompareRow(
+                  'Duration',
+                  video.durationFormatted,
+                  video.durationFormatted,
+                ),
+            ],
+          ),
+        ),
         const SizedBox(height: 20),
         _buildActions(context),
       ],
