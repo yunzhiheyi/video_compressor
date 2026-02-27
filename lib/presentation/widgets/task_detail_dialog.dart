@@ -220,6 +220,7 @@ class TaskDetailDialog extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
+            flex: 1,
             child: Text(
               label,
               style: TextStyle(
@@ -231,24 +232,26 @@ class TaskDetailDialog extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Row(
-              children: [
-                Text(
-                  before,
-                  style: TextStyle(
-                    color: isDesktop
-                        ? Colors.white.withValues(alpha: 0.8)
-                        : AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Icon(Icons.arrow_forward,
-                    color: AppColors.textSecondary, size: 14),
-              ],
+            flex: 1,
+            child: Text(
+              before,
+              style: TextStyle(
+                color: isDesktop
+                    ? Colors.white.withValues(alpha: 0.8)
+                    : AppColors.textSecondary,
+                fontSize: 12,
+              ),
             ),
           ),
           Expanded(
+            flex: 1,
+            child: Center(
+              child: const Icon(Icons.arrow_forward,
+                  color: AppColors.textSecondary, size: 14),
+            ),
+          ),
+          Expanded(
+            flex: 1,
             child: Text(
               after,
               style: TextStyle(

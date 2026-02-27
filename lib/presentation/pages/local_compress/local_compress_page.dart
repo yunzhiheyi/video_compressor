@@ -641,6 +641,7 @@ class _HistoryPage extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
+            flex: 1,
             child: Text(
               label,
               style: const TextStyle(
@@ -650,22 +651,24 @@ class _HistoryPage extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Row(
-              children: [
-                Text(
-                  before,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Icon(Icons.arrow_forward,
-                    color: AppColors.textSecondary, size: 14),
-              ],
+            flex: 1,
+            child: Text(
+              before,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
             ),
           ),
           Expanded(
+            flex: 1,
+            child: Center(
+              child: const Icon(Icons.arrow_forward,
+                  color: AppColors.textSecondary, size: 14),
+            ),
+          ),
+          Expanded(
+            flex: 1,
             child: Text(
               after,
               style: const TextStyle(
