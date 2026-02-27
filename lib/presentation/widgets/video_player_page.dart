@@ -1,38 +1,28 @@
 /// 全屏视频播放页面
 ///
-/// 提供全屏视频播放功能，支持：
+/// 使用 Chewie 提供视频播放功能，支持：
 /// - 自适应视频宽高比
-/// - 点击播放/暂停
-/// - 播放控制按钮自动隐藏
-/// - Hero动画过渡（可选）
-///
-/// 使用 video_player 包进行视频播放。
+/// - 进度条（可拖动）
+/// - 播放/暂停控制
+/// - 时间显示
+/// - 音量控制
+/// - 倍速播放
 library;
 
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
+import '../../../core/constants/app_colors.dart';
 
-/// 全屏视频播放页面组件
-///
-/// 显示一个全屏的视频播放器，带有播放控制和关闭按钮。
-/// 支持Hero动画过渡效果。
 class VideoPlayerPage extends StatefulWidget {
-  /// 视频文件的本地路径
   final String videoPath;
-
-  /// Hero动画标签，用于页面过渡动画
   final String? heroTag;
-
-  /// 视频缩略图数据，在视频加载时显示
-  final Uint8List? thumbnail;
 
   const VideoPlayerPage({
     super.key,
     required this.videoPath,
     this.heroTag,
-    this.thumbnail,
   });
 
   @override
@@ -40,13 +30,9 @@ class VideoPlayerPage extends StatefulWidget {
 }
 
 class _VideoPlayerPageState extends State<VideoPlayerPage> {
-  /// 视频播放控制器
-  VideoPlayerController? _controller;
-
-  /// 是否发生播放错误
+  VideoPlayerController? _videoController;
+  ChewieController? _chewieController;
   bool _hasError = false;
-
-  /// 视频是否已初始化完成
   bool _isInitialized = false;
 
   @override
@@ -55,21 +41,64 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     _initPlayer();
   }
 
-  /// 初始化视频播放器
-  ///
-  /// 创建控制器并尝试加载视频文件，
-  /// 初始化成功后自动开始播放。
   Future<void> _initPlayer() async {
-    _controller = VideoPlayerController.file(File(widget.videoPath));
-    _controller!.addListener(_videoListener);
+    _videoController = VideoPlayerController.file(File(widget.videoPath));
+
     try {
-      await _controller!.initialize();
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
-        });
-        _controller!.play();
-      }
+      await _videoController!.initialize();
+      if (!mounted) return;
+
+      _chewieController = ChewieController(
+        videoPlayerController: _videoController!,
+        autoPlay: true,
+        looping: false,
+        allowFullScreen: true,
+        allowMuting: true,
+        allowPlaybackSpeedChanging: true,
+        playbackSpeeds: const [0.5, 0.75, 1.0, 1.25, 1.5, 2.0],
+        optionsTranslation: OptionsTranslation(
+          playbackSpeedButtonText: 'Speed',
+        ),
+        theme: _buildChewieTheme(),
+        materialProgressColors: ChewieProgressColors(
+          playedColor: AppColors.primary,
+          handleColor: AppColors.primary,
+          backgroundColor: Colors.white24,
+          bufferedColor: Colors.white38,
+        ),
+        placeholder: Container(
+          color: Colors.black,
+          child: const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          ),
+        ),
+        errorBuilder: (context, errorMessage) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  'Video playback failed',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  errorMessage,
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      setState(() {
+        _isInitialized = true;
+      });
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -79,19 +108,20 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
-  /// 视频状态变化监听器
-  ///
-  /// 当视频播放状态变化时触发UI刷新。
-  void _videoListener() {
-    if (mounted) {
-      setState(() {});
-    }
+  ChewieThemeData _buildChewieTheme() {
+    return ChewieThemeData(
+      backgroundColor: Colors.black,
+      controlBarBackgroundColor: Colors.black.withValues(alpha: 0.7),
+      controlBarHeight: 50,
+      iconColor: Colors.white,
+      textStyle: const TextStyle(color: Colors.white),
+    );
   }
 
   @override
   void dispose() {
-    _controller?.removeListener(_videoListener);
-    _controller?.dispose();
+    _chewieController?.dispose();
+    _videoController?.dispose();
     super.dispose();
   }
 
@@ -103,20 +133,18 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     );
   }
 
-  /// 构建页面主体内容
-  ///
-  /// 根据视频加载状态显示不同的内容：
-  /// - 加载错误：显示错误提示
-  /// - 正在加载：显示加载指示器
-  /// - 加载完成：显示视频播放器
   Widget _buildBody() {
     if (_hasError) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Video playback failed',
-                style: TextStyle(color: Colors.white)),
+            const Icon(Icons.error_outline, color: Colors.white, size: 48),
+            const SizedBox(height: 16),
+            const Text(
+              'Video playback failed',
+              style: TextStyle(color: Colors.white),
+            ),
             const SizedBox(height: 20),
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -127,59 +155,25 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       );
     }
 
-    if (!_isInitialized || _controller == null) {
+    if (!_isInitialized || _chewieController == null) {
       return const Center(
-          child: CircularProgressIndicator(color: Colors.white));
+        child: CircularProgressIndicator(color: Colors.white),
+      );
     }
 
     return Stack(
       children: [
-        // 视频播放器，使用Hero动画过渡
         Center(
           child: widget.heroTag != null
               ? Hero(
                   tag: widget.heroTag!,
                   child: Material(
                     color: Colors.black,
-                    child: _buildVideoContent(),
+                    child: Chewie(controller: _chewieController!),
                   ),
                 )
-              : _buildVideoContent(),
+              : Chewie(controller: _chewieController!),
         ),
-        // 播放/暂停控制层
-        GestureDetector(
-          onTap: () {
-            if (_controller == null) return;
-            setState(() {
-              if (_controller!.value.isPlaying) {
-                _controller!.pause();
-              } else {
-                _controller!.play();
-              }
-            });
-          },
-          child: Container(
-            color: Colors.transparent,
-            width: double.infinity,
-            height: double.infinity,
-            child: Center(
-              child: AnimatedOpacity(
-                opacity: _controller?.value.isPlaying ?? false ? 0.0 : 1.0,
-                duration: const Duration(milliseconds: 200),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black45,
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  child: const Icon(Icons.play_arrow,
-                      color: Colors.white, size: 28),
-                ),
-              ),
-            ),
-          ),
-        ),
-        // 关闭按钮 - 最上层
         Positioned(
           top: 0,
           left: 0,
@@ -204,17 +198,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           ),
         ),
       ],
-    );
-  }
-
-  /// 构建视频内容组件
-  ///
-  /// 使用AspectRatio确保视频按正确比例显示。
-  Widget _buildVideoContent() {
-    if (_controller == null) return const SizedBox();
-    return AspectRatio(
-      aspectRatio: _controller!.value.aspectRatio,
-      child: VideoPlayer(_controller!),
     );
   }
 }
