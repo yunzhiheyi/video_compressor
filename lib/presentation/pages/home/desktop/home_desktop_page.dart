@@ -22,7 +22,7 @@ class HomeDesktopPage extends StatelessWidget {
           body: Row(
             children: [
               _buildSidebar(context, state),
-              Container(width: 1, color: Colors.white.withValues(alpha: 0.1)),
+              Container(width: 0.5, color: Colors.white.withValues(alpha: 0.1)),
               Expanded(
                 child: IndexedStack(
                   index: state.currentIndex,
@@ -68,7 +68,7 @@ class HomeDesktopPage extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(color: Colors.white12, height: 1),
+          const Divider(color: Colors.white12, height: 0.5),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),

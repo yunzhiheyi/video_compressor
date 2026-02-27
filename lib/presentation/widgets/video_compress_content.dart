@@ -16,6 +16,7 @@ import '../widgets/video_player_page.dart';
 import '../widgets/video_list_item.dart';
 import '../widgets/task_detail_dialog.dart';
 import '../widgets/animated_entry_list.dart';
+import '../widgets/animated_removable_item.dart';
 
 enum VideoCompressStyle { mobile, desktop }
 
@@ -36,6 +37,8 @@ class VideoCompressContent extends StatefulWidget {
 class VideoCompressContentState extends State<VideoCompressContent>
     with WidgetsBindingObserver {
   final Set<String> _animatedKeys = {};
+  final Map<String, GlobalKey<AnimatedRemovableItemState>> _removableItemKeys =
+      {};
 
   @override
   void initState() {
@@ -157,28 +160,48 @@ class VideoCompressContentState extends State<VideoCompressContent>
         final task =
             state.tasks.where((t) => t.video.path == video.path).firstOrNull;
 
+        final listItem = VideoListItem(
+          video: video,
+          task: task,
+          ffmpegService: ffmpegService,
+          isDesktop: widget.style == VideoCompressStyle.desktop,
+          onTapThumbnail: () => playVideo(context, video.path),
+          onTapDetail: task != null && task.isComplete
+              ? () => showTaskDetail(
+                  context, task, widget.style == VideoCompressStyle.desktop)
+              : null,
+          onDelete: () => removeVideo(context, video, task),
+          onRetry: task != null && (task.isFailed || task.isSkipped)
+              ? () => context.read<LocalCompressBloc>().add(RetryTask(task.id))
+              : null,
+        );
+
+        // 桌面端：包裹 AnimatedRemovableItem 实现删除动画
+        if (widget.style == VideoCompressStyle.desktop) {
+          _removableItemKeys[video.path] ??=
+              GlobalKey<AnimatedRemovableItemState>();
+          return AnimatedEntryItem(
+            itemKey: video.path,
+            index: index,
+            hasAnimated: (key) => _animatedKeys.contains(key),
+            markAsAnimated: (key) => _animatedKeys.add(key),
+            animationDirection: AnimationDirection.vertical,
+            child: AnimatedRemovableItem(
+              key: _removableItemKeys[video.path],
+              onRemove: () => _performRemove(context, video, task),
+              child: listItem,
+            ),
+          );
+        }
+
+        // 移动端：使用 AnimatedEntryItem + Dismissible
         return AnimatedEntryItem(
           itemKey: video.path,
           index: index,
           hasAnimated: (key) => _animatedKeys.contains(key),
           markAsAnimated: (key) => _animatedKeys.add(key),
           animationDirection: AnimationDirection.vertical,
-          child: VideoListItem(
-            video: video,
-            task: task,
-            ffmpegService: ffmpegService,
-            isDesktop: widget.style == VideoCompressStyle.desktop,
-            onTapThumbnail: () => playVideo(context, video.path),
-            onTapDetail: task != null && task.isComplete
-                ? () => showTaskDetail(
-                    context, task, widget.style == VideoCompressStyle.desktop)
-                : null,
-            onDelete: () => removeVideo(context, video, task),
-            onRetry: task != null && (task.isFailed || task.isSkipped)
-                ? () =>
-                    context.read<LocalCompressBloc>().add(RetryTask(task.id))
-                : null,
-          ),
+          child: listItem,
         );
       },
     );
@@ -387,7 +410,21 @@ class VideoCompressContentState extends State<VideoCompressContent>
   }
 
   void removeVideo(BuildContext context, video, CompressTask? task) {
+    // 桌面端：先播放删除动画，再执行删除
+    if (widget.style == VideoCompressStyle.desktop) {
+      final key = _removableItemKeys[video.path];
+      if (key?.currentState != null) {
+        key!.currentState!.remove();
+        return;
+      }
+    }
+    // 移动端或动画 key 不存在：直接删除
+    _performRemove(context, video, task);
+  }
+
+  void _performRemove(BuildContext context, video, CompressTask? task) {
     _animatedKeys.remove(video.path);
+    _removableItemKeys.remove(video.path);
     if (task != null && task.isRunning) {
       context.read<LocalCompressBloc>().add(CancelCompress(task.id));
     } else if (task != null) {
