@@ -3,17 +3,9 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icon/app_icon.png"
   
-  # Android 配置
-  android_icon_sizes:
-    mdpi: 48
-    hdpi: 72
-    xhdpi: 96
-    xxhdpi: 144
-    xxxhdpi: 192
-  
   # iOS 配置
   remove_alpha_ios: true
   
-  # 适配图标
-  adaptive_icon_background: "#0D0D0D"
+  # Android 适配图标（蓝色背景）
+  adaptive_icon_background: "#2196F3"
   adaptive_icon_foreground: "assets/icon/app_icon.png"

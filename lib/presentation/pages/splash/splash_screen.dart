@@ -109,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final isDesktop = Platform.isMacOS;
-    final logoSize = isDesktop ? 120.0 : 100.0;
+    final logoSize = isDesktop ? 120.0 : 90.0;
     final iconSize = isDesktop ? 60.0 : 48.0;
 
     return Scaffold(
