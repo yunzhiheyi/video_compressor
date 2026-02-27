@@ -23,21 +23,6 @@ class CompressionTaskHandler extends TaskHandler {
   Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
     debugPrint('[ForegroundService] Task destroyed, isTimeout: $isTimeout');
   }
-
-  @override
-  void onReceiveData(Object data) {
-    debugPrint('[ForegroundService] Received data: $data');
-    if (data is Map<String, dynamic>) {
-      final progress = data['progress'];
-      final taskName = data['taskName'];
-      if (progress != null && taskName != null) {
-        final percentage = ((progress as num) * 100).toStringAsFixed(0);
-        FlutterForegroundTask.updateService(
-          notificationText: 'Compressing: $taskName ($percentage%)',
-        );
-      }
-    }
-  }
 }
 
 class ForegroundService {
@@ -125,11 +110,6 @@ class ForegroundService {
     await FlutterForegroundTask.updateService(
       notificationText: 'Compressing: $taskName ($percentage%)',
     );
-
-    FlutterForegroundTask.sendDataToTask({
-      'progress': progress,
-      'taskName': taskName,
-    });
   }
 
   Future<void> completeTask() async {
