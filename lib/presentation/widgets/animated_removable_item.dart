@@ -19,38 +19,60 @@ class AnimatedRemovableItem extends StatefulWidget {
 }
 
 class AnimatedRemovableItemState extends State<AnimatedRemovableItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+    with TickerProviderStateMixin {
+  late AnimationController _slideController;
+  late AnimationController _shrinkController;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _heightAnimation;
   bool _isRemoving = false;
+  double? _originalHeight;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _slideController = AnimationController(
       duration: widget.slideDuration,
       vsync: this,
     );
+    _shrinkController = AnimationController(
+      duration: widget.shrinkDuration,
+      vsync: this,
+    );
+
     _slideAnimation = Tween<Offset>(
       begin: Offset.zero,
       end: const Offset(1.0, 0.0),
     ).animate(CurvedAnimation(
-      parent: _controller,
+      parent: _slideController,
+      curve: Curves.easeOut,
+    ));
+
+    _heightAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _shrinkController,
       curve: Curves.easeOut,
     ));
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _slideController.dispose();
+    _shrinkController.dispose();
     super.dispose();
   }
 
   void remove() {
     if (_isRemoving) return;
     setState(() => _isRemoving = true);
-    _controller.forward().then((_) {
-      widget.onRemove();
+
+    // 先播放滑出动画
+    _slideController.forward().then((_) {
+      // 滑出完成后播放收缩动画
+      _shrinkController.forward().then((_) {
+        widget.onRemove();
+      });
     });
   }
 
@@ -60,10 +82,17 @@ class AnimatedRemovableItemState extends State<AnimatedRemovableItem>
       return widget.child;
     }
 
-    return AnimatedSize(
-      duration: widget.shrinkDuration,
-      curve: Curves.easeOut,
-      alignment: Alignment.topCenter,
+    return AnimatedBuilder(
+      animation: _shrinkController,
+      builder: (context, child) {
+        return ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: _heightAnimation.value,
+            child: child,
+          ),
+        );
+      },
       child: SlideTransition(
         position: _slideAnimation,
         child: widget.child,
