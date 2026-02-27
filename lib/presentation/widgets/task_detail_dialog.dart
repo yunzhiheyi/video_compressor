@@ -212,23 +212,20 @@ class TaskDetailDialog extends StatelessWidget {
   /// 构建对比行组件
   ///
   /// [label] - 标签文本
-  /// [before] - 原始值
-  /// [after] - 压缩后值
+  /// [before] - 原始值（居左）
+  /// [after] - 压缩后值（居右）
   Widget _buildCompareRow(String label, String before, String after) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: isDesktop
-                    ? Colors.white.withValues(alpha: 0.6)
-                    : AppColors.textSecondary,
-                fontSize: 12,
-              ),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDesktop
+                  ? Colors.white.withValues(alpha: 0.6)
+                  : AppColors.textSecondary,
+              fontSize: 12,
             ),
           ),
           Expanded(
@@ -240,11 +237,9 @@ class TaskDetailDialog extends StatelessWidget {
                     : AppColors.textSecondary,
                 fontSize: 12,
               ),
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.left,
             ),
           ),
-          const Icon(Icons.arrow_forward,
-              color: AppColors.textSecondary, size: 14),
           Expanded(
             child: Text(
               after,
@@ -253,7 +248,7 @@ class TaskDetailDialog extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.right,
             ),
           ),
         ],
@@ -358,11 +353,6 @@ class TaskDetailDialog extends StatelessWidget {
           ),
           child: Column(
             children: [
-              _buildCompareRow(
-                'Size',
-                video.sizeFormatted,
-                _formatSize(task.compressedSize),
-              ),
               _buildCompareRow(
                 'Resolution',
                 originalResolution,

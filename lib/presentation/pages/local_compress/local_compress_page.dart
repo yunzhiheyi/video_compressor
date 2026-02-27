@@ -564,11 +564,6 @@ class _HistoryPage extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildHistoryCompareRow(
-                      'Size',
-                      _formatSize(item.originalSize),
-                      _formatSize(item.compressedSize),
-                    ),
                     if (item.originalResolution.isNotEmpty)
                       _buildHistoryCompareRow(
                         'Resolution',
@@ -645,14 +640,11 @@ class _HistoryPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-              ),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
             ),
           ),
           Expanded(
@@ -662,11 +654,9 @@ class _HistoryPage extends StatelessWidget {
                 color: AppColors.textSecondary,
                 fontSize: 12,
               ),
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.left,
             ),
           ),
-          const Icon(Icons.arrow_forward,
-              color: AppColors.textSecondary, size: 14),
           Expanded(
             child: Text(
               after,
@@ -675,7 +665,7 @@ class _HistoryPage extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.right,
             ),
           ),
         ],

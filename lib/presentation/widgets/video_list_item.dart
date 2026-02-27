@@ -258,7 +258,7 @@ class _VideoListItemState extends State<VideoListItem> {
         borderRadius: BorderRadius.circular(8),
         child: Container(
           width: widget.isDesktop ? 120 : 100,
-          height: widget.isDesktop ? 80 : 70,
+          height: widget.isDesktop ? 100 : 90,
           color: AppColors.primary.withValues(alpha: 0.1),
           child: Stack(
             children: [
@@ -366,8 +366,13 @@ class _VideoListItemState extends State<VideoListItem> {
                     style: infoStyle),
               if (video.bitrate != null)
                 Text(_formatBitrate(video.bitrate!), style: infoStyle),
-              Text(video.sizeFormatted, style: infoStyle),
             ],
+          ),
+          const SizedBox(height: 2),
+          // Size 单独一行
+          Text(
+            'Size: ${video.sizeFormatted}',
+            style: infoStyle,
           ),
           // 码率警告
           if (widget.bitrateWarning != null)
