@@ -329,14 +329,17 @@ class _VideoListItemState extends State<VideoListItem> {
               // 播放按钮
               Positioned.fill(
                 child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      shape: BoxShape.circle,
+                  child: GestureDetector(
+                    onTap: widget.onTapThumbnail,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.play_arrow,
+                          color: Colors.white, size: 18),
                     ),
-                    child: const Icon(Icons.play_arrow,
-                        color: Colors.white, size: 18),
                   ),
                 ),
               ),

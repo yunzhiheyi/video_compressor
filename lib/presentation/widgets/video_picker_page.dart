@@ -643,92 +643,96 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
 
     _itemKeys.putIfAbsent(video.id, () => GlobalKey());
 
-    return Container(
-      key: _itemKeys[video.id],
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 缩略图
-          _VideoThumbnailWidget(
-            videoId: video.id,
-            cache: _thumbnailCache,
-            failedSet: _failedThumbnails,
-            onPathLoaded: (path) {
-              _videoPathCache[video.id] = path;
-            },
-            onThumbnailLoaded: () {
-              if (!_loadedThumbnails.contains(video.id)) {
-                setState(() {
-                  _loadedThumbnails.add(video.id);
-                });
-              }
-            },
-          ),
-          // 选中遮罩
-          if (isSelected)
-            Container(color: AppColors.primary.withValues(alpha: 0.3)),
-          // 底部时长
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.7)
-                    ]),
-              ),
-              child: Text(_formatDuration(video.duration),
-                  style: const TextStyle(color: Colors.white, fontSize: 11)),
+    return GestureDetector(
+      onTap: () => _toggleSelection(video),
+      child: Container(
+        key: _itemKeys[video.id],
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 缩略图
+            _VideoThumbnailWidget(
+              videoId: video.id,
+              cache: _thumbnailCache,
+              failedSet: _failedThumbnails,
+              onPathLoaded: (path) {
+                _videoPathCache[video.id] = path;
+              },
+              onThumbnailLoaded: () {
+                if (!_loadedThumbnails.contains(video.id)) {
+                  setState(() {
+                    _loadedThumbnails.add(video.id);
+                  });
+                }
+              },
             ),
-          ),
-          // 右上角选择按钮
-          Positioned(
-            top: 4,
-            right: 4,
-            child: GestureDetector(
-              onTap: () => _toggleSelection(video),
+            // 选中遮罩
+            if (isSelected)
+              Container(color: AppColors.primary.withValues(alpha: 0.3)),
+            // 底部时长
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
               child: Container(
-                width: 22,
-                height: 22,
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : Colors.black38,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5)),
-                child: Center(
-                  child: isSelected
-                      ? Text('${_selectedVideos.toList().indexOf(video) + 1}',
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600))
-                      : null,
+                  gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.7)
+                      ]),
                 ),
+                child: Text(_formatDuration(video.duration),
+                    style: const TextStyle(color: Colors.white, fontSize: 11)),
               ),
             ),
-          ),
-          // 播放按钮（最上层，只有缩略图加载完成后才显示）
-          if (_loadedThumbnails.contains(video.id))
-            Center(
+            // 右上角选择按钮
+            Positioned(
+              top: 4,
+              right: 4,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => _previewVideo(video),
+                onTap: () => _toggleSelection(video),
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 22,
+                  height: 22,
                   decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      shape: BoxShape.circle),
-                  child: const Icon(Icons.play_arrow_rounded,
-                      color: Colors.white, size: 24),
+                      color: isSelected ? AppColors.primary : Colors.black38,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.5)),
+                  child: Center(
+                    child: isSelected
+                        ? Text('${_selectedVideos.toList().indexOf(video) + 1}',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600))
+                        : null,
+                  ),
                 ),
               ),
             ),
-        ],
+            // 播放按钮（最上层，只有缩略图加载完成后才显示）
+            if (_loadedThumbnails.contains(video.id))
+              Center(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _previewVideo(video),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        shape: BoxShape.circle),
+                    child: const Icon(Icons.play_arrow_rounded,
+                        color: Colors.white, size: 24),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
