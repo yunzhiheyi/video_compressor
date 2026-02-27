@@ -69,7 +69,7 @@ class _DesktopCompressPageState extends State<DesktopCompressPage> {
                         ],
                       ),
                     ),
-                    Expanded(
+                    const Expanded(
                       child: VideoCompressContent(
                         style: VideoCompressStyle.desktop,
                         includeBottomBar: false,

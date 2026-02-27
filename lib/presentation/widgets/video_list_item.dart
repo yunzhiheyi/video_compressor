@@ -498,7 +498,7 @@ class _VideoListItemState extends State<VideoListItem> {
       child: Container(
         decoration: BoxDecoration(
           color: widget.isDesktop
-              ? Colors.white.withValues(alpha: 0.1)
+              ? Colors.transparent
               : AppColors.surface.withValues(alpha: 0.9),
         ),
         child: Row(
