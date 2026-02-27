@@ -521,38 +521,62 @@ class _VideoListItemState extends State<VideoListItem> {
     return Positioned(
       right: 0,
       bottom: 0,
-      child: Container(
-        // padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.9),
-          // borderRadius: BorderRadius.circular(4),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            AnimatedFlipCounter(
-              value: percentage,
-              duration: const Duration(milliseconds: 300),
-              fractionDigits: 1,
-              textStyle: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: widget.isDesktop ? 20 : 16,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Text(
-                '%',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: widget.isDesktop ? 12 : 10,
+      child: widget.isDesktop
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                AnimatedFlipCounter(
+                  value: percentage,
+                  duration: const Duration(milliseconds: 300),
+                  fractionDigits: 1,
+                  textStyle: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                  ),
                 ),
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 2),
+                  child: Text(
+                    '%',
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface.withValues(alpha: 0.9),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  AnimatedFlipCounter(
+                    value: percentage,
+                    duration: const Duration(milliseconds: 300),
+                    fractionDigits: 1,
+                    textStyle: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 2),
+                    child: Text(
+                      '%',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
