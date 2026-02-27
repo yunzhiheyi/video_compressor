@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gal/gal.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../data/models/compress_task.dart';
@@ -269,6 +270,46 @@ class VideoCompressContentState extends State<VideoCompressContent>
   }
 
   static Future<void> selectVideos(BuildContext context) async {
+    // Desktop: 直接打开文件选择器
+    if (Platform.isMacOS) {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.video,
+        allowMultiple: true,
+        withData: false,
+      );
+      if (result == null || result.files.isEmpty || !context.mounted) return;
+
+      final paths = result.paths.whereType<String>().toList();
+      if (paths.isEmpty) return;
+
+      // 获取视频元数据
+      final ffmpegService = context.read<FFmpegService>();
+      final videoDataList = <Map<String, dynamic>>[];
+
+      for (final path in paths) {
+        final file = File(path);
+        if (!await file.exists()) continue;
+
+        final info = await ffmpegService.getVideoInfo(path);
+        videoDataList.add({
+          'path': path,
+          'name': info['name'],
+          'size': info['size'],
+          'width': info['width'],
+          'height': info['height'],
+          'duration': info['duration'],
+          'bitrate': info['bitrate'],
+          'frameRate': info['frameRate'],
+        });
+      }
+
+      if (videoDataList.isNotEmpty && context.mounted) {
+        context.read<LocalCompressBloc>().add(SelectVideos(videoDataList));
+      }
+      return;
+    }
+
+    // Mobile: 使用 VideoPickerPage
     final hasPermission = await VideoPickerPage.checkPermission();
     if (!context.mounted) return;
 
