@@ -51,6 +51,7 @@ class FFmpegService {
       String? bitrate;
       String? frameRate;
       int? size;
+      int? rotation;
 
       // 逐行解析JSON数据
       for (final line in lines) {
@@ -111,6 +112,23 @@ class FFmpegService {
           final sizeDouble = double.tryParse(sizeStr);
           size = sizeDouble?.toInt();
         }
+        // 检测旋转角度（side_data_list 中的 rotation）
+        if (trimmed.startsWith('"rotation":')) {
+          final rotationStr = trimmed.split(':')[1].replaceAll(',', '').trim();
+          rotation = int.tryParse(rotationStr);
+        }
+      }
+
+      int? parsedWidth = width != null ? int.tryParse(width) : null;
+      int? parsedHeight = height != null ? int.tryParse(height) : null;
+
+      // 如果视频有 90 或 270 度旋转，需要交换宽高
+      if (rotation != null && (rotation.abs() == 90 || rotation.abs() == 270)) {
+        final temp = parsedWidth;
+        parsedWidth = parsedHeight;
+        parsedHeight = temp;
+        debugPrint(
+            '[FFmpegService] Video has rotation $rotation, swapped dimensions to ${parsedWidth}x$parsedHeight');
       }
 
       return {
@@ -118,8 +136,8 @@ class FFmpegService {
         'name': path.split('/').last,
         'size': size,
         'duration': duration != null ? double.tryParse(duration) : null,
-        'width': width != null ? int.tryParse(width) : null,
-        'height': height != null ? int.tryParse(height) : null,
+        'width': parsedWidth,
+        'height': parsedHeight,
         'codec': codec,
         'bitrate': bitrate != null ? int.tryParse(bitrate) : null,
         'frameRate': frameRate != null ? double.tryParse(frameRate) : null,
