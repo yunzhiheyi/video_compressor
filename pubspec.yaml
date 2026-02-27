@@ -23,6 +23,7 @@ dependencies:
   gal: ^2.3.0
   desktop_drop: ^0.7.0
   flutter_foreground_task: ^9.2.0
+  animated_flip_counter: ^0.3.4
 
 dev_dependencies:
   flutter_test:

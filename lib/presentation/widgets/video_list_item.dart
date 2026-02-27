@@ -20,6 +20,7 @@
 /// ```
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:animated_flip_counter/animated_flip_counter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/compress_task.dart';
 import '../../../data/models/video_info.dart';
@@ -516,25 +517,38 @@ class _VideoListItemState extends State<VideoListItem> {
 
   /// 构建进度水印（压缩中显示在右下角）
   Widget _buildProgressWatermark(double progress) {
-    final percentage = (progress * 100).toStringAsFixed(0);
+    final percentage = progress * 100;
     return Positioned(
-      right: 0,
-      bottom: 0,
-      child: RichText(
-        text: TextSpan(
+      right: 8,
+      bottom: 8,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.surface.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            TextSpan(
-              text: percentage,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.15),
-                fontSize: widget.isDesktop ? 24 : 18,
+            AnimatedFlipCounter(
+              value: percentage,
+              duration: const Duration(milliseconds: 300),
+              fractionDigits: 1,
+              textStyle: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: widget.isDesktop ? 20 : 16,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            TextSpan(
-              text: '%',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.15),
-                fontSize: widget.isDesktop ? 14 : 10,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                '%',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: widget.isDesktop ? 12 : 10,
+                ),
               ),
             ),
           ],
