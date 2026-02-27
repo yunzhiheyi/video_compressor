@@ -100,11 +100,15 @@ class VideoInfo extends Equatable {
       codec: json['codec'],
       bitrate: (json['bitrate'] as num?)?.toInt(),
       frameRate: (json['frameRate'] as num?)?.toDouble(),
-      thumbnailBytes: json['thumbnailBytes'] as Uint8List?,
+      // 缩略图不持久化，加载时重新提取
+      thumbnailBytes: null,
     );
   }
 
   /// 转换为JSON Map
+  ///
+  /// 注意：thumbnailBytes 不持久化，因为 Uint8List 无法直接 JSON 序列化，
+  /// 且缩略图可以在加载时重新从视频提取
   Map<String, dynamic> toJson() {
     return {
       'path': path,

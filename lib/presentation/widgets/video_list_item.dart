@@ -101,18 +101,16 @@ class _VideoListItemState extends State<VideoListItem> {
   /// 加载缩略图
   ///
   /// 加载策略：
-  /// 1. 移动端优先使用系统提供的缩略图
-  /// 2. 桌面端使用FFmpeg提取第一帧
-  /// 3. 使用静态缓存避免重复提取
+  /// 1. 优先使用已有的缩略图 (thumbnailBytes)
+  /// 2. 桌面端：使用 FFmpeg 提取第一帧
+  /// 3. 移动端：如果 source 是相册视频，可以重新获取缩略图
+  /// 4. 使用静态缓存避免重复提取
   Future<void> _loadThumbnail() async {
-    // 移动端优先使用已有的缩略图
+    // 优先使用已有的缩略图
     if (widget.video.thumbnailBytes != null) {
       setState(() => _thumbnail = widget.video.thumbnailBytes);
       return;
     }
-
-    // 桌面端使用 FFmpeg 获取缩略图
-    if (!widget.isDesktop) return;
 
     // 检查缓存
     if (_thumbnailCache.containsKey(widget.video.path)) {
@@ -126,6 +124,7 @@ class _VideoListItemState extends State<VideoListItem> {
     setState(() => _isLoadingThumbnail = true);
 
     try {
+      // 桌面端或移动端都用 FFmpeg 提取缩略图
       final thumbnail =
           await widget.ffmpegService.extractThumbnail(widget.video.path);
       _thumbnailCache[widget.video.path] = thumbnail;
