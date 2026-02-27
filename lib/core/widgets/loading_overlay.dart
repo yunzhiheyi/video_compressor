@@ -7,7 +7,7 @@ class LoadingOverlay {
   static void show(
     BuildContext context, {
     Color? indicatorColor,
-    double indicatorWidth = 3.0,
+    double indicatorWidth = 2.0,
     Color? backgroundColor,
   }) {
     hide();
@@ -38,7 +38,7 @@ class _LoadingWidget extends StatelessWidget {
 
   const _LoadingWidget({
     this.indicatorColor,
-    this.indicatorWidth = 3.0,
+    this.indicatorWidth = 2.0,
     this.backgroundColor,
   });
 
