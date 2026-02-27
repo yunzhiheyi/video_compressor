@@ -697,7 +697,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
 
   /// 检查运行中的任务（应用恢复时调用）
   ///
-  /// 验证运行中的任务是否实际已完成（处理息屏后回调丢失的情况）
+  /// 验证运行中的任务是否实际已完成（处理后台回调丢失的情况）
   Future<void> _onCheckRunningTasks(
     CheckRunningTasks event,
     Emitter<LocalCompressState> emit,
@@ -721,19 +721,33 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
             '[LocalCompressBloc] Found output file for task ${task.id}: $compressedSize bytes');
 
         if (compressedSize > 0) {
-          // 如果进度接近完成（>80%），检查是否真的完成了
-          if (task.progress > 0.8) {
+          // 使用 FFprobe 检查文件是否完整
+          final isValid = await _ffmpegService.isVideoValid(outputPath);
+
+          if (isValid) {
+            // 文件完整，认为任务已完成
+            debugPrint(
+                '[LocalCompressBloc] Task ${task.id} output is valid, triggering completion');
+            add(_TaskCompleted(
+              taskId: task.id,
+              outputPath: outputPath,
+            ));
+          } else {
             // 等待一小段时间再检查文件是否还在增长
             await Future.delayed(const Duration(milliseconds: 500));
             final newSize = await outputFile.length();
 
-            if (newSize == compressedSize) {
-              // 文件大小没变，认为已完成
+            if (newSize > compressedSize) {
+              // 文件还在增长，任务仍在进行中
               debugPrint(
-                  '[LocalCompressBloc] Task ${task.id} appears complete, triggering completion');
+                  '[LocalCompressBloc] Task ${task.id} still in progress (file growing: $compressedSize -> $newSize)');
+            } else if (newSize == compressedSize) {
+              // 文件大小没变但不完整，可能是压缩中断了
+              debugPrint(
+                  '[LocalCompressBloc] Task ${task.id} file not growing but invalid, marking as failed');
               add(_TaskCompleted(
                 taskId: task.id,
-                outputPath: outputPath,
+                error: 'Compression interrupted',
               ));
             }
           }

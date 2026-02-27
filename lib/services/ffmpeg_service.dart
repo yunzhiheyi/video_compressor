@@ -511,6 +511,41 @@ class FFmpegService {
     _progressMap[taskId] = -1.0;
   }
 
+  /// 检查视频文件是否完整可播放
+  /// [filePath] 视频文件路径
+  /// 返回 true 表示文件完整
+  Future<bool> isVideoValid(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        return false;
+      }
+
+      final size = await file.length();
+      if (size == 0) {
+        return false;
+      }
+
+      // 使用 FFprobe 检查文件是否有效
+      final session = await FFprobeKit.execute(
+          '-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$filePath"');
+      final output = await session.getOutput();
+      final returnCode = await session.getReturnCode();
+
+      if (ReturnCode.isSuccess(returnCode) &&
+          output != null &&
+          output.trim().isNotEmpty) {
+        final duration = double.tryParse(output.trim());
+        return duration != null && duration > 0;
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint('[FFmpegService] Error checking video validity: $e');
+      return false;
+    }
+  }
+
   /// 释放资源
   void dispose() {
     _progressMap.clear();

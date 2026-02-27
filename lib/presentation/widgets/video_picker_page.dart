@@ -144,8 +144,10 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
     if (albums.isNotEmpty) {
       _albums = albums;
       _selectedAlbum = albums.first;
-      // 先加载视频列表，完成后再关闭loading
+      // 先加载视频列表
       await _loadVideos();
+      // 预加载第一批缩略图（屏幕可见的数量）
+      await _preloadThumbnails();
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -168,6 +170,46 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
     } catch (e) {
       debugPrint('Video list load failed: $e');
       if (mounted) setState(() => _videos = []);
+    }
+  }
+
+  /// 预加载第一批缩略图
+  Future<void> _preloadThumbnails() async {
+    if (_videos.isEmpty) return;
+
+    // 预加载前18个（3列x6行）
+    final preloadCount = _videos.length < 18 ? _videos.length : 18;
+    final futures = <Future>[];
+
+    for (int i = 0; i < preloadCount; i++) {
+      final video = _videos[i];
+      if (_thumbnailCache.containsKey(video.id)) continue;
+
+      futures.add(_loadSingleThumbnail(video));
+    }
+
+    if (futures.isNotEmpty) {
+      await Future.wait(futures);
+    }
+  }
+
+  /// 加载单个缩略图
+  Future<void> _loadSingleThumbnail(AssetEntity video) async {
+    try {
+      final thumbnail =
+          await video.thumbnailDataWithSize(const ThumbnailSize(200, 200));
+      final file = await video.file;
+
+      if (file != null) {
+        _videoPathCache[video.id] = file.path;
+      }
+
+      if (thumbnail != null && mounted) {
+        _thumbnailCache[video.id] = thumbnail;
+        _loadedThumbnails.add(video.id);
+      }
+    } catch (e) {
+      _failedThumbnails.add(video.id);
     }
   }
 
@@ -596,7 +638,7 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
   /// 切换相册
   ///
   /// 清除当前缓存并加载新相册的视频列表。
-  void _switchAlbum(AssetPathEntity album) {
+  void _switchAlbum(AssetPathEntity album) async {
     setState(() {
       _selectedAlbum = album;
       _thumbnailCache.clear();
@@ -605,8 +647,15 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
       _selectedVideos.clear();
       _failedThumbnails.clear();
       _loadedThumbnails.clear();
+      _isLoading = true;
     });
-    _loadVideos();
+
+    await _loadVideos();
+    await _preloadThumbnails();
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   /// 构建移动端主体内容
