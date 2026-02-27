@@ -59,6 +59,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     on<RemoveTask>(_onRemoveTask);
     on<ClearCompleted>(_onClearCompleted);
     on<LoadDefaultConfig>(_onLoadDefaultConfig);
+    on<CheckRunningTasks>(_onCheckRunningTasks);
     // 内部事件
     on<_StartTask>(_onStartTask);
     on<_UpdateTaskProgress>(_onUpdateTaskProgress);
@@ -652,6 +653,55 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
         .where((t) => !t.isComplete && !t.isFailed && !t.isSkipped)
         .toList();
     emit(state.copyWith(tasks: tasks));
+  }
+
+  /// 检查运行中的任务（应用恢复时调用）
+  ///
+  /// 验证运行中的任务是否实际已完成（处理息屏后回调丢失的情况）
+  Future<void> _onCheckRunningTasks(
+    CheckRunningTasks event,
+    Emitter<LocalCompressState> emit,
+  ) async {
+    final runningTasks = state.tasks.where((t) => t.isRunning).toList();
+    if (runningTasks.isEmpty) return;
+
+    debugPrint(
+        '[LocalCompressBloc] Checking ${runningTasks.length} running tasks on resume');
+
+    for (final task in runningTasks) {
+      // 获取预期的输出路径
+      final outputPath =
+          await _getOutputPath(task.video.name ?? 'video_${task.id}.mp4');
+      final outputFile = File(outputPath);
+
+      if (await outputFile.exists()) {
+        final compressedSize = await outputFile.length();
+        debugPrint(
+            '[LocalCompressBloc] Found output file for task ${task.id}: $compressedSize bytes');
+
+        if (compressedSize > 0) {
+          // 文件存在且有内容，认为任务已完成
+          int? compressedWidth;
+          int? compressedHeight;
+          try {
+            final outputInfo = await _ffmpegService.getVideoInfo(outputPath);
+            compressedWidth = outputInfo['width'] as int?;
+            compressedHeight = outputInfo['height'] as int?;
+          } catch (e) {
+            debugPrint('[LocalCompressBloc] Failed to get output info: $e');
+          }
+
+          // 直接触发完成事件
+          add(_TaskCompleted(
+            taskId: task.id,
+            outputPath: outputPath,
+          ));
+        }
+      } else {
+        debugPrint(
+            '[LocalCompressBloc] Output file not found for task ${task.id}');
+      }
+    }
   }
 
   @override

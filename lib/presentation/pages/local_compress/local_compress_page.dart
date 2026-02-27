@@ -153,8 +153,29 @@ class _VideoCompressPage extends StatefulWidget {
   State<_VideoCompressPage> createState() => _VideoCompressPageState();
 }
 
-class _VideoCompressPageState extends State<_VideoCompressPage> {
+class _VideoCompressPageState extends State<_VideoCompressPage>
+    with WidgetsBindingObserver {
   final Set<String> _animatedKeys = {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // 应用恢复时检查运行中的任务
+      context.read<LocalCompressBloc>().add(const CheckRunningTasks());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

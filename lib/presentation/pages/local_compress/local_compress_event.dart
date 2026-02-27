@@ -93,3 +93,10 @@ class RemoveSelectedVideo extends LocalCompressEvent {
   @override
   List<Object?> get props => [path];
 }
+
+/// 检查运行中的任务事件
+///
+/// 用于应用恢复时检查是否有任务已完成但回调未触发
+class CheckRunningTasks extends LocalCompressEvent {
+  const CheckRunningTasks();
+}
