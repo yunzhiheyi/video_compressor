@@ -76,7 +76,9 @@ class VideoCompressorApp extends StatelessWidget {
                   ffmpegService: context.read<FFmpegService>(),
                   storageService: context.read<StorageService>(),
                   foregroundService: context.read<ForegroundService>(),
-                )..add(const LoadDefaultConfig()),
+                )
+                  ..add(const LoadDefaultConfig())
+                  ..add(const LoadSavedTasks()),
               ),
               BlocProvider(
                 create: (_) => HistoryBloc(

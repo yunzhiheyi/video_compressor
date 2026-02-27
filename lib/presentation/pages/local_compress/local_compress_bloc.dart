@@ -65,6 +65,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     on<RemoveTask>(_onRemoveTask);
     on<ClearCompleted>(_onClearCompleted);
     on<LoadDefaultConfig>(_onLoadDefaultConfig);
+    on<LoadSavedTasks>(_onLoadSavedTasks);
     on<CheckRunningTasks>(_onCheckRunningTasks);
     on<ClearToastMessage>(_onClearToastMessage);
     on<RetryTask>(_onRetryTask);
@@ -634,6 +635,9 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
       }
     }
 
+    // 保存任务列表
+    await _saveTasks();
+
     // 检查是否还有运行中的任务
     final hasRunning =
         tasks.any((t) => t.isRunning || t.isPending || t.isQueued);
@@ -685,12 +689,16 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
   }
 
   /// 移除任务
-  void _onRemoveTask(RemoveTask event, Emitter<LocalCompressState> emit) {
+  Future<void> _onRemoveTask(
+      RemoveTask event, Emitter<LocalCompressState> emit) async {
     _subscriptions[event.taskId]?.cancel();
     _subscriptions.remove(event.taskId);
     _pendingQueue.removeWhere((id) => id == event.taskId);
     final tasks = state.tasks.where((t) => t.id != event.taskId).toList();
     emit(state.copyWith(tasks: tasks));
+
+    // 删除持久化数据
+    await _storageService.deleteTaskItem(event.taskId);
   }
 
   /// 清除已完成任务
@@ -834,6 +842,59 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     Emitter<LocalCompressState> emit,
   ) {
     emit(state.copyWith(clearToastMessage: true));
+  }
+
+  /// 加载已保存的任务
+  ///
+  /// 从本地存储恢复未完成的任务
+  Future<void> _onLoadSavedTasks(
+    LoadSavedTasks event,
+    Emitter<LocalCompressState> emit,
+  ) async {
+    try {
+      final taskDataList = await _storageService.getTaskList();
+      if (taskDataList.isEmpty) return;
+
+      final loadedTasks = <CompressTask>[];
+      final loadedVideos = <VideoInfo>[];
+
+      for (final taskData in taskDataList) {
+        try {
+          final task = CompressTask.fromJson(taskData);
+          // 只恢复已完成、失败或跳过的任务
+          // 运行中的任务在应用重启后需要重新处理
+          if (task.isComplete || task.isFailed || task.isSkipped) {
+            loadedTasks.add(task);
+            if (!loadedVideos.any((v) => v.path == task.video.path)) {
+              loadedVideos.add(task.video);
+            }
+          }
+        } catch (e) {
+          debugPrint('[LocalCompressBloc] Failed to load task: $e');
+        }
+      }
+
+      if (loadedTasks.isNotEmpty) {
+        debugPrint(
+            '[LocalCompressBloc] Loaded ${loadedTasks.length} saved tasks');
+        emit(state.copyWith(
+          tasks: loadedTasks,
+          selectedVideos: loadedVideos,
+        ));
+      }
+    } catch (e) {
+      debugPrint('[LocalCompressBloc] Failed to load saved tasks: $e');
+    }
+  }
+
+  /// 保存任务列表到本地存储
+  Future<void> _saveTasks() async {
+    try {
+      final taskDataList = state.tasks.map((t) => t.toJson()).toList();
+      await _storageService.saveTaskList(taskDataList);
+    } catch (e) {
+      debugPrint('[LocalCompressBloc] Failed to save tasks: $e');
+    }
   }
 
   /// 重试任务

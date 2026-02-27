@@ -119,3 +119,10 @@ class RetryTask extends LocalCompressEvent {
   @override
   List<Object?> get props => [taskId];
 }
+
+/// 加载已保存的任务事件
+///
+/// 从本地存储读取未完成的任务
+class LoadSavedTasks extends LocalCompressEvent {
+  const LoadSavedTasks();
+}

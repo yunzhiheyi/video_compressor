@@ -19,6 +19,9 @@ class StorageService {
   /// 历史记录存储键
   static const _historyKey = 'compression_history';
 
+  /// 任务列表存储键
+  static const _tasksKey = 'compression_tasks';
+
   /// 默认画质存储键
   static const _qualityKey = 'default_quality';
 
@@ -130,5 +133,36 @@ class StorageService {
   /// 默认返回 '720P'
   String getDefaultResolution() {
     return _prefs.getString(_resolutionKey) ?? '720P';
+  }
+
+  /// 保存任务列表
+  Future<void> saveTaskList(List<Map<String, dynamic>> tasks) async {
+    await _prefs.setString(_tasksKey, jsonEncode(tasks));
+  }
+
+  /// 获取任务列表
+  Future<List<Map<String, dynamic>>> getTaskList() async {
+    final String? data = _prefs.getString(_tasksKey);
+    if (data == null) return [];
+    try {
+      final List<dynamic> list = jsonDecode(data);
+      return list.cast<Map<String, dynamic>>();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// 删除指定的任务
+  ///
+  /// [id] - 任务ID
+  Future<void> deleteTaskItem(String id) async {
+    final tasks = await getTaskList();
+    tasks.removeWhere((item) => item['id'] == id);
+    await _prefs.setString(_tasksKey, jsonEncode(tasks));
+  }
+
+  /// 清除所有任务
+  Future<void> clearTasks() async {
+    await _prefs.remove(_tasksKey);
   }
 }

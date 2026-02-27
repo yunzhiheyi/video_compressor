@@ -132,4 +132,28 @@ class CompressConfig extends Equatable {
         frameRate,
         keepOriginalResolution,
       ];
+
+  /// 转换为JSON Map
+  Map<String, dynamic> toJson() {
+    return {
+      'quality': quality.index,
+      'customBitrate': customBitrate,
+      'targetWidth': targetWidth,
+      'targetHeight': targetHeight,
+      'frameRate': frameRate,
+      'keepOriginalResolution': keepOriginalResolution,
+    };
+  }
+
+  /// 从JSON Map创建实例
+  factory CompressConfig.fromJson(Map<String, dynamic> json) {
+    return CompressConfig(
+      quality: CompressQuality.values[json['quality'] as int? ?? 1],
+      customBitrate: json['customBitrate'] as int?,
+      targetWidth: json['targetWidth'] as int?,
+      targetHeight: json['targetHeight'] as int?,
+      frameRate: json['frameRate'] as int?,
+      keepOriginalResolution: json['keepOriginalResolution'] as bool? ?? true,
+    );
+  }
 }

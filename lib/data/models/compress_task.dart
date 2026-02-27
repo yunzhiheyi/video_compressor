@@ -151,4 +151,38 @@ class CompressTask extends Equatable {
         errorMessage,
         skipReason,
       ];
+
+  /// 转换为JSON Map
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'video': video.toJson(),
+      'config': config.toJson(),
+      'status': status.index,
+      'progress': progress,
+      'outputPath': outputPath,
+      'compressedSize': compressedSize,
+      'compressedWidth': compressedWidth,
+      'compressedHeight': compressedHeight,
+      'errorMessage': errorMessage,
+      'skipReason': skipReason,
+    };
+  }
+
+  /// 从JSON Map创建实例
+  factory CompressTask.fromJson(Map<String, dynamic> json) {
+    return CompressTask(
+      id: json['id'] as String,
+      video: VideoInfo.fromJson(json['video'] as Map<String, dynamic>),
+      config: CompressConfig.fromJson(json['config'] as Map<String, dynamic>),
+      status: CompressTaskStatus.values[json['status'] as int? ?? 0],
+      progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
+      outputPath: json['outputPath'] as String?,
+      compressedSize: json['compressedSize'] as int?,
+      compressedWidth: json['compressedWidth'] as int?,
+      compressedHeight: json['compressedHeight'] as int?,
+      errorMessage: json['errorMessage'] as String?,
+      skipReason: json['skipReason'] as String?,
+    );
+  }
 }
