@@ -219,16 +219,17 @@ class TaskDetailDialog extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: isDesktop
-                  ? Colors.white.withValues(alpha: 0.6)
-                  : AppColors.textSecondary,
-              fontSize: 12,
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isDesktop
+                    ? Colors.white.withValues(alpha: 0.6)
+                    : AppColors.textSecondary,
+                fontSize: 12,
+              ),
             ),
           ),
-          const SizedBox(width: 16),
           Expanded(
             child: Text(
               before,
@@ -238,22 +239,22 @@ class TaskDetailDialog extends StatelessWidget {
                     : AppColors.textSecondary,
                 fontSize: 12,
               ),
+              textAlign: TextAlign.center,
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Icon(Icons.arrow_forward,
-                color: AppColors.textSecondary, size: 14),
-          ),
           Expanded(
-            child: Text(
-              after,
-              style: TextStyle(
-                color: isDesktop ? Colors.white : AppColors.textPrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.right,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  after,
+                  style: TextStyle(
+                    color: isDesktop ? Colors.white : AppColors.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
