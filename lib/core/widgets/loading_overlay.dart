@@ -53,20 +53,20 @@ class _LoadingWidget extends StatelessWidget {
         ),
         Center(
           child: Container(
-            width: 60,
-            height: 60,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
               color: backgroundColor ?? const Color(0xCC000000),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Center(
               child: SizedBox(
-                width: 28,
-                height: 28,
+                width: 24,
+                height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: indicatorWidth,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    indicatorColor ?? AppColors.primary,
+                    indicatorColor ?? Colors.white,
                   ),
                 ),
               ),
