@@ -321,6 +321,7 @@ class VideoCompressContentState extends State<VideoCompressContent>
           'duration': info['duration'],
           'bitrate': info['bitrate'],
           'frameRate': info['frameRate'],
+          'rotation': info['rotation'],
         });
       }
 

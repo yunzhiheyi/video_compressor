@@ -265,6 +265,7 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
           'size': fileSize,
           'bitrate': bitrate,
           'frameRate': frameRate,
+          'rotation': null, // photo_manager 的尺寸已经是显示尺寸
         });
       }
     }

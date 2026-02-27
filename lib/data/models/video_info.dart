@@ -40,6 +40,9 @@ class VideoInfo extends Equatable {
   /// 帧率
   final double? frameRate;
 
+  /// 旋转角度（0, 90, 180, 270）
+  final int? rotation;
+
   /// 缩略图字节数据（移动端使用）
   final Uint8List? thumbnailBytes;
 
@@ -53,11 +56,25 @@ class VideoInfo extends Equatable {
     this.codec,
     this.bitrate,
     this.frameRate,
+    this.rotation,
     this.thumbnailBytes,
   });
 
   /// 获取分辨率字符串（如 "1920×1080"）
-  String get resolution => '${width ?? 0}×${height ?? 0}';
+  ///
+  /// 考虑旋转元数据，返回显示时的实际分辨率
+  String get resolution {
+    int? displayWidth = width;
+    int? displayHeight = height;
+
+    // 如果有 90 或 270 度旋转，交换宽高用于显示
+    if (rotation != null && (rotation!.abs() == 90 || rotation!.abs() == 270)) {
+      displayWidth = height;
+      displayHeight = width;
+    }
+
+    return '${displayWidth ?? 0}×${displayHeight ?? 0}';
+  }
 
   /// 获取格式化后的文件大小（如 "25.5 MB"）
   String get sizeFormatted => _formatFileSize(size ?? 0);
@@ -100,6 +117,7 @@ class VideoInfo extends Equatable {
       codec: json['codec'],
       bitrate: (json['bitrate'] as num?)?.toInt(),
       frameRate: (json['frameRate'] as num?)?.toDouble(),
+      rotation: (json['rotation'] as num?)?.toInt(),
       // 缩略图不持久化，加载时重新提取
       thumbnailBytes: null,
     );
@@ -120,6 +138,7 @@ class VideoInfo extends Equatable {
       'codec': codec,
       'bitrate': bitrate,
       'frameRate': frameRate,
+      'rotation': rotation,
     };
   }
 
@@ -134,6 +153,7 @@ class VideoInfo extends Equatable {
     String? codec,
     int? bitrate,
     double? frameRate,
+    int? rotation,
     Uint8List? thumbnailBytes,
   }) {
     return VideoInfo(
@@ -146,6 +166,7 @@ class VideoInfo extends Equatable {
       codec: codec ?? this.codec,
       bitrate: bitrate ?? this.bitrate,
       frameRate: frameRate ?? this.frameRate,
+      rotation: rotation ?? this.rotation,
       thumbnailBytes: thumbnailBytes ?? this.thumbnailBytes,
     );
   }
@@ -161,6 +182,7 @@ class VideoInfo extends Equatable {
         codec,
         bitrate,
         frameRate,
+        rotation,
         thumbnailBytes,
       ];
 }

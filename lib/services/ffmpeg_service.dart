@@ -123,13 +123,13 @@ class FFmpegService {
       int? parsedWidth = width != null ? int.tryParse(width) : null;
       int? parsedHeight = height != null ? int.tryParse(height) : null;
 
-      // 如果视频有 90 或 270 度旋转，需要交换宽高
-      if (rotation != null && (rotation.abs() == 90 || rotation.abs() == 270)) {
-        final temp = parsedWidth;
-        parsedWidth = parsedHeight;
-        parsedHeight = temp;
+      // 不在这里交换宽高！
+      // FFmpeg 压缩时需要用原始存储尺寸来判断横竖屏
+      // 因为 scale 滤镜作用于原始像素数据，不考虑旋转元数据
+      // 返回 rotation 供 UI 层在显示时使用
+      if (rotation != null) {
         debugPrint(
-            '[FFmpegService] Video has rotation $rotation, swapped dimensions to ${parsedWidth}x$parsedHeight');
+            '[FFmpegService] Video has rotation $rotation (dimensions not swapped for compression)');
       }
 
       return {
@@ -142,6 +142,7 @@ class FFmpegService {
         'codec': codec,
         'bitrate': bitrate != null ? int.tryParse(bitrate) : null,
         'frameRate': frameRate != null ? double.tryParse(frameRate) : null,
+        'rotation': rotation,
       };
     } catch (e) {
       debugPrint('[FFmpegService] Parse error: $e');

@@ -160,6 +160,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
         thumbnailBytes: videoData['thumbnailBytes'] as Uint8List?,
         bitrate: videoData['bitrate'] as int?,
         frameRate: videoData['frameRate'] as double?,
+        rotation: videoData['rotation'] as int?,
       );
       newVideos.add(videoInfo);
     }
