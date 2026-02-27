@@ -37,9 +37,6 @@ class VideoListItem extends StatefulWidget {
   /// FFmpeg服务（用于提取缩略图）
   final FFmpegService ffmpegService;
 
-  /// 码率警告信息（当原视频码率较低时显示）
-  final String? bitrateWarning;
-
   /// 点击缩略图回调
   final VoidCallback? onTapThumbnail;
 
@@ -60,7 +57,6 @@ class VideoListItem extends StatefulWidget {
     required this.video,
     required this.ffmpegService,
     this.task,
-    this.bitrateWarning,
     this.onTapThumbnail,
     this.onTapDetail,
     this.onDelete,
@@ -379,27 +375,6 @@ class _VideoListItemState extends State<VideoListItem> {
             'Size: ${video.sizeFormatted}',
             style: infoStyle,
           ),
-          // 码率警告
-          if (widget.bitrateWarning != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Row(
-                children: [
-                  const Icon(Icons.warning_amber,
-                      color: AppColors.warning, size: 12),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      widget.bitrateWarning ?? '',
-                      style: const TextStyle(
-                          color: AppColors.warning, fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           _buildTaskStatus(),
         ],
       ),

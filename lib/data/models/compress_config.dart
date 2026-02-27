@@ -84,25 +84,6 @@ class CompressConfig extends Equatable {
     }
   }
 
-  /// 判断是否会增大文件大小
-  ///
-  /// [originalBitrate] - 原始视频码率
-  bool willIncreaseSize(int? originalBitrate) {
-    if (originalBitrate == null || originalBitrate <= 0) return false;
-    return bitrate > originalBitrate;
-  }
-
-  /// 获取警告信息
-  ///
-  /// 当目标码率高于原始码率时，返回警告信息
-  String getWarningMessage(int? originalBitrate) {
-    if (originalBitrate == null || originalBitrate <= 0) return '';
-    if (bitrate > originalBitrate) {
-      return 'Warning: Output may be larger than original';
-    }
-    return '';
-  }
-
   /// 复制并修改部分属性
   CompressConfig copyWith({
     CompressQuality? quality,

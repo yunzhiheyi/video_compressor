@@ -156,7 +156,6 @@ class VideoCompressContentState extends State<VideoCompressContent>
         final video = state.selectedVideos[index];
         final task =
             state.tasks.where((t) => t.video.path == video.path).firstOrNull;
-        final bitrateWarning = state.config.getWarningMessage(video.bitrate);
 
         return AnimatedEntryItem(
           itemKey: video.path,
@@ -168,7 +167,6 @@ class VideoCompressContentState extends State<VideoCompressContent>
             video: video,
             task: task,
             ffmpegService: ffmpegService,
-            bitrateWarning: bitrateWarning.isNotEmpty ? bitrateWarning : null,
             isDesktop: widget.style == VideoCompressStyle.desktop,
             onTapThumbnail: () => playVideo(context, video.path),
             onTapDetail: task != null && task.isComplete
