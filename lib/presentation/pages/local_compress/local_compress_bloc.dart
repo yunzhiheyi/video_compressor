@@ -698,6 +698,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
   /// 检查运行中的任务（应用恢复时调用）
   ///
   /// 验证运行中的任务是否实际已完成（处理后台回调丢失的情况）
+  /// iOS后台会暂停任务，需要重新启动或标记完成
   Future<void> _onCheckRunningTasks(
     CheckRunningTasks event,
     Emitter<LocalCompressState> emit,
@@ -710,18 +711,30 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
         '[LocalCompressBloc] Checking ${runningTasks.length} running tasks on resume');
 
     for (final task in runningTasks) {
-      // 检查任务是否还在 FFmpeg 中运行
-      if (_ffmpegService.isTaskRunning(task.id)) {
-        debugPrint(
-            '[LocalCompressBloc] Task ${task.id} still running in FFmpeg, skipping check');
-        continue;
-      }
-
-      // 获取预期的输出路径
+      final sessionId = _ffmpegService.getTaskSessionId(task.id);
       final outputPath =
           await _getOutputPath(task.video.name ?? 'video_${task.id}.mp4');
       final outputFile = File(outputPath);
 
+      // 检查FFmpeg session是否真的还在运行
+      final isSessionActive = await _ffmpegService.isSessionActive(sessionId);
+
+      if (isSessionActive) {
+        debugPrint('[LocalCompressBloc] Task ${task.id} session still active');
+        // Session还在运行，检查文件是否有进展
+        if (await outputFile.exists()) {
+          final size = await outputFile.length();
+          debugPrint(
+              '[LocalCompressBloc] Task ${task.id} output size: $size bytes');
+        }
+        continue;
+      }
+
+      // Session已结束，从映射中移除
+      _ffmpegService.removeTask(task.id);
+      debugPrint('[LocalCompressBloc] Task ${task.id} session ended');
+
+      // 检查输出文件
       if (await outputFile.exists()) {
         final compressedSize = await outputFile.length();
         debugPrint(
@@ -740,18 +753,36 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
               outputPath: outputPath,
             ));
           } else {
-            // 文件不完整，压缩可能中断了
+            // 文件不完整，压缩被中断
             debugPrint(
                 '[LocalCompressBloc] Task ${task.id} file invalid, marking as failed');
+            // 删除不完整的文件
+            try {
+              await outputFile.delete();
+            } catch (e) {
+              debugPrint(
+                  '[LocalCompressBloc] Failed to delete incomplete file: $e');
+            }
             add(_TaskCompleted(
               taskId: task.id,
-              error: 'Compression interrupted',
+              error: 'Compression interrupted. Please try again.',
             ));
           }
+        } else {
+          // 文件为空，标记失败
+          add(_TaskCompleted(
+            taskId: task.id,
+            error: 'Compression failed: output file is empty',
+          ));
         }
       } else {
+        // 输出文件不存在，任务被中断
         debugPrint(
-            '[LocalCompressBloc] Output file not found for task ${task.id}');
+            '[LocalCompressBloc] Output file not found for task ${task.id}, marking as failed');
+        add(_TaskCompleted(
+          taskId: task.id,
+          error: 'Compression interrupted. Please try again.',
+        ));
       }
     }
   }

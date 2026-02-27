@@ -382,11 +382,14 @@ class FFmpegService {
         debugPrint(
             '[FFmpegService] Task $id timeout, canceling session: $sessionId');
         await FFmpegKit.cancel(sessionId);
-        _sessionIdMap.remove(id);
       }
+      _sessionIdMap.remove(id);
+      _progressMap.remove(id);
       throw Exception('Compression timeout');
     }
 
+    // 清理session映射
+    _sessionIdMap.remove(id);
     _progressMap.remove(id);
 
     if (hasError) {
@@ -550,6 +553,45 @@ class FFmpegService {
   /// [taskId] 任务ID
   bool isTaskRunning(String taskId) {
     return _sessionIdMap.containsKey(taskId);
+  }
+
+  /// 检查FFmpeg session是否真的还在运行（异步检查）
+  /// [sessionId] FFmpeg session ID
+  Future<bool> isSessionActive(int? sessionId) async {
+    if (sessionId == null) return false;
+
+    try {
+      // 获取所有运行中的session
+      final sessions = await FFmpegKit.listSessions();
+      if (sessions == null) return false;
+
+      for (final session in sessions) {
+        if (session.getSessionId() == sessionId) {
+          // session存在于列表中，检查是否已完成
+          final returnCode = await session.getReturnCode();
+          // 如果returnCode为null或不是成功/取消，说明还在运行
+          if (returnCode == null) return true;
+          return !ReturnCode.isSuccess(returnCode) &&
+              !ReturnCode.isCancel(returnCode);
+        }
+      }
+      return false;
+    } catch (e) {
+      debugPrint('[FFmpegService] Error checking session status: $e');
+      return false;
+    }
+  }
+
+  /// 获取任务会话ID
+  /// [taskId] 任务ID
+  int? getTaskSessionId(String taskId) {
+    return _sessionIdMap[taskId];
+  }
+
+  /// 从运行中移除任务（session结束时调用）
+  void removeTask(String taskId) {
+    _sessionIdMap.remove(taskId);
+    _progressMap.remove(taskId);
   }
 
   /// 释放资源
