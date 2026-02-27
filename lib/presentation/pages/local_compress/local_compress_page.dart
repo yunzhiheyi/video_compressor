@@ -647,6 +647,7 @@ class _HistoryPage extends StatelessWidget {
               fontSize: 12,
             ),
           ),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               before,
@@ -654,8 +655,12 @@ class _HistoryPage extends StatelessWidget {
                 color: AppColors.textSecondary,
                 fontSize: 12,
               ),
-              textAlign: TextAlign.left,
             ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Icon(Icons.arrow_forward,
+                color: AppColors.textSecondary, size: 14),
           ),
           Expanded(
             child: Text(

@@ -212,8 +212,8 @@ class TaskDetailDialog extends StatelessWidget {
   /// 构建对比行组件
   ///
   /// [label] - 标签文本
-  /// [before] - 原始值（居左）
-  /// [after] - 压缩后值（居右）
+  /// [before] - 原始值
+  /// [after] - 压缩后值
   Widget _buildCompareRow(String label, String before, String after) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -228,6 +228,7 @@ class TaskDetailDialog extends StatelessWidget {
               fontSize: 12,
             ),
           ),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               before,
@@ -237,8 +238,12 @@ class TaskDetailDialog extends StatelessWidget {
                     : AppColors.textSecondary,
                 fontSize: 12,
               ),
-              textAlign: TextAlign.left,
             ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Icon(Icons.arrow_forward,
+                color: AppColors.textSecondary, size: 14),
           ),
           Expanded(
             child: Text(

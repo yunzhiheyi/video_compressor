@@ -257,8 +257,8 @@ class _VideoListItemState extends State<VideoListItem> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          width: widget.isDesktop ? 120 : 100,
-          height: widget.isDesktop ? 100 : 90,
+          width: 110,
+          height: 80,
           color: AppColors.primary.withValues(alpha: 0.1),
           child: Stack(
             children: [
