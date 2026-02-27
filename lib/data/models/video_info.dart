@@ -108,9 +108,7 @@ class VideoInfo extends Equatable {
       name: json['name'],
       size: (json['size'] as num?)?.toInt(),
       duration: json['duration'] != null
-          ? Duration(
-              milliseconds:
-                  ((json['duration'] as num).toDouble() * 1000).toInt())
+          ? Duration(milliseconds: (json['duration'] as num).toInt())
           : null,
       width: (json['width'] as num?)?.toInt(),
       height: (json['height'] as num?)?.toInt(),
@@ -118,7 +116,6 @@ class VideoInfo extends Equatable {
       bitrate: (json['bitrate'] as num?)?.toInt(),
       frameRate: (json['frameRate'] as num?)?.toDouble(),
       rotation: (json['rotation'] as num?)?.toInt(),
-      // 缩略图不持久化，加载时重新提取
       thumbnailBytes: null,
     );
   }
