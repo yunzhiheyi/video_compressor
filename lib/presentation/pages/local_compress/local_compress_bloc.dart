@@ -129,7 +129,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
 
   /// 选择视频
   ///
-  /// 解析视频信息并添加到已选列表
+  /// 并行获取视频信息并添加到已选列表
   Future<void> _onSelectVideos(
     SelectVideos event,
     Emitter<LocalCompressState> emit,
@@ -137,31 +137,53 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     debugPrint(
         '[LocalCompressBloc] Selecting videos: ${event.videoDataList.length}');
 
-    final newVideos = <VideoInfo>[];
-    for (final videoData in event.videoDataList) {
+    // 过滤已存在的视频
+    final newVideoDataList = event.videoDataList.where((videoData) {
+      final path = videoData['path'] as String;
+      return !state.selectedVideos.any((v) => v.path == path);
+    }).toList();
+
+    if (newVideoDataList.isEmpty) {
+      debugPrint('[LocalCompressBloc] No new videos to add');
+      return;
+    }
+
+    // 先显示 loading
+    emit(state.copyWith(isLoadingVideos: true));
+
+    // 并行获取所有视频信息
+    final futures = newVideoDataList.map((videoData) async {
       final path = videoData['path'] as String;
       final thumbnailBytes = videoData['thumbnailBytes'] as Uint8List?;
 
-      // 跳过已存在的视频
-      if (state.selectedVideos.any((v) => v.path == path)) continue;
-
       try {
         final info = await _ffmpegService.getVideoInfo(path);
-        final videoInfo = VideoInfo.fromJson(info).copyWith(
+        return VideoInfo.fromJson(info).copyWith(
           thumbnailBytes: thumbnailBytes,
         );
-        newVideos.add(videoInfo);
       } catch (e) {
-        debugPrint('[LocalCompressBloc] Failed to get video info: $e');
+        debugPrint(
+            '[LocalCompressBloc] Failed to get video info for $path: $e');
+        return null;
       }
-    }
+    }).toList();
+
+    final results = await Future.wait(futures);
+
+    // 过滤掉失败的结果
+    final newVideos = results.whereType<VideoInfo>().toList();
 
     // 追加新视频到现有列表
     final allVideos = [...state.selectedVideos, ...newVideos];
 
     debugPrint(
         '[LocalCompressBloc] Total ${allVideos.length} videos (${newVideos.length} new)');
-    emit(state.copyWith(selectedVideos: allVideos));
+
+    // 更新列表并隐藏 loading
+    emit(state.copyWith(
+      selectedVideos: allVideos,
+      isLoadingVideos: false,
+    ));
   }
 
   /// 移除已选视频

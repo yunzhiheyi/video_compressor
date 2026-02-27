@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gal/gal.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/widgets/loading_overlay.dart';
 import '../../../data/models/compress_task.dart';
 import '../../../services/ffmpeg_service.dart';
 import '../../../utils/app_toast.dart';
@@ -166,6 +167,7 @@ class _VideoCompressPageState extends State<_VideoCompressPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    LoadingOverlay.hide();
     super.dispose();
   }
 
@@ -179,15 +181,29 @@ class _VideoCompressPageState extends State<_VideoCompressPage>
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LocalCompressBloc, LocalCompressState>(
-      builder: (context, state) {
-        return Column(
-          children: [
-            Expanded(child: _buildContent(context, state)),
-            if (state.hasVideos) _buildBottomBar(context, state),
-          ],
-        );
+    return BlocListener<LocalCompressBloc, LocalCompressState>(
+      listenWhen: (previous, current) =>
+          previous.isLoadingVideos != current.isLoadingVideos,
+      listener: (context, state) {
+        if (state.isLoadingVideos) {
+          LoadingOverlay.show(
+            context,
+            message: 'Loading videos...',
+          );
+        } else {
+          LoadingOverlay.hide();
+        }
       },
+      child: BlocBuilder<LocalCompressBloc, LocalCompressState>(
+        builder: (context, state) {
+          return Column(
+            children: [
+              Expanded(child: _buildContent(context, state)),
+              if (state.hasVideos) _buildBottomBar(context, state),
+            ],
+          );
+        },
+      ),
     );
   }
 
