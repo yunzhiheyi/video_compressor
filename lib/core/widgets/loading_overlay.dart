@@ -57,37 +57,20 @@ class _LoadingWidget extends StatelessWidget {
         ),
         Center(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 48),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: backgroundColor ?? const Color(0xCC000000),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(
-                    strokeWidth: indicatorWidth,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      indicatorColor ?? AppColors.primary,
-                    ),
-                  ),
+            child: SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                strokeWidth: indicatorWidth,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  indicatorColor ?? AppColors.primary,
                 ),
-                if (message != null) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    message!,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
         ),

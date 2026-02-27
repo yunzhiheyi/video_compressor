@@ -186,10 +186,7 @@ class _VideoCompressPageState extends State<_VideoCompressPage>
           previous.isLoadingVideos != current.isLoadingVideos,
       listener: (context, state) {
         if (state.isLoadingVideos) {
-          LoadingOverlay.show(
-            context,
-            message: 'Loading videos...',
-          );
+          LoadingOverlay.show(context);
         } else {
           LoadingOverlay.hide();
         }
