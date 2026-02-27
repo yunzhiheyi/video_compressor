@@ -54,11 +54,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         looping: false,
         allowFullScreen: true,
         allowMuting: true,
-        allowPlaybackSpeedChanging: true,
-        playbackSpeeds: const [0.5, 0.75, 1.0, 1.25, 1.5, 2.0],
-        optionsTranslation: OptionsTranslation(
-          playbackSpeedButtonText: 'Speed',
-        ),
+        showOptions: false,
         materialProgressColors: ChewieProgressColors(
           playedColor: Colors.white,
           handleColor: Colors.white,
