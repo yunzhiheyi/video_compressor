@@ -574,6 +574,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
         int? compressedSize;
         int? compressedWidth;
         int? compressedHeight;
+        int? compressedBitrate;
 
         try {
           final outputFile = File(outputPath);
@@ -585,8 +586,9 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
             final outputInfo = await _ffmpegService.getVideoInfo(outputPath);
             compressedWidth = outputInfo['width'] as int?;
             compressedHeight = outputInfo['height'] as int?;
+            compressedBitrate = outputInfo['bitrate'] as int?;
             debugPrint(
-                '[LocalCompressBloc] Output resolution: ${compressedWidth}x$compressedHeight');
+                '[LocalCompressBloc] Output resolution: ${compressedWidth}x$compressedHeight, bitrate: $compressedBitrate');
           } else {
             debugPrint(
                 '[LocalCompressBloc] Output file does not exist: $outputPath');
@@ -610,6 +612,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
             compressedSize: compressedSize,
             compressedWidth: compressedWidth,
             compressedHeight: compressedHeight,
+            compressedBitrate: compressedBitrate,
           );
           emit(state.copyWith(tasks: tasks));
 
@@ -629,7 +632,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
                     : '',
             'duration': task.video.duration?.inSeconds.toDouble() ?? 0,
             'originalBitrate': task.video.bitrate ?? 0,
-            'compressedBitrate': task.config.bitrate,
+            'compressedBitrate': compressedBitrate ?? task.config.bitrate,
             'frameRate': task.video.frameRate ?? 0,
           });
         }

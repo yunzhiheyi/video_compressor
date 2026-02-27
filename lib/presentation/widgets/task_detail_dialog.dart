@@ -381,7 +381,7 @@ class TaskDetailDialog extends StatelessWidget {
               _buildCompareRow(
                 'Bitrate',
                 _formatBitrate(video.bitrate),
-                _formatBitrate(task.config.bitrate),
+                _formatBitrate(task.compressedBitrate ?? task.config.bitrate),
               ),
               _buildCompareRow(
                 'Frame Rate',

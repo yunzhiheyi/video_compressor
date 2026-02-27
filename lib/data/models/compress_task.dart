@@ -49,6 +49,9 @@ class CompressTask extends Equatable {
   /// 压缩后视频高度
   final int? compressedHeight;
 
+  /// 压缩后视频比特率（实际使用的比特率）
+  final int? compressedBitrate;
+
   /// 错误信息（失败时）
   final String? errorMessage;
 
@@ -65,6 +68,7 @@ class CompressTask extends Equatable {
     this.compressedSize,
     this.compressedWidth,
     this.compressedHeight,
+    this.compressedBitrate,
     this.errorMessage,
     this.skipReason,
   });
@@ -119,6 +123,7 @@ class CompressTask extends Equatable {
     int? compressedSize,
     int? compressedWidth,
     int? compressedHeight,
+    int? compressedBitrate,
     String? errorMessage,
     String? skipReason,
   }) {
@@ -132,6 +137,7 @@ class CompressTask extends Equatable {
       compressedSize: compressedSize ?? this.compressedSize,
       compressedWidth: compressedWidth ?? this.compressedWidth,
       compressedHeight: compressedHeight ?? this.compressedHeight,
+      compressedBitrate: compressedBitrate ?? this.compressedBitrate,
       errorMessage: errorMessage ?? this.errorMessage,
       skipReason: skipReason ?? this.skipReason,
     );
@@ -148,6 +154,7 @@ class CompressTask extends Equatable {
         compressedSize,
         compressedWidth,
         compressedHeight,
+        compressedBitrate,
         errorMessage,
         skipReason,
       ];
@@ -164,6 +171,7 @@ class CompressTask extends Equatable {
       'compressedSize': compressedSize,
       'compressedWidth': compressedWidth,
       'compressedHeight': compressedHeight,
+      'compressedBitrate': compressedBitrate,
       'errorMessage': errorMessage,
       'skipReason': skipReason,
     };
@@ -181,6 +189,7 @@ class CompressTask extends Equatable {
       compressedSize: json['compressedSize'] as int?,
       compressedWidth: json['compressedWidth'] as int?,
       compressedHeight: json['compressedHeight'] as int?,
+      compressedBitrate: json['compressedBitrate'] as int?,
       errorMessage: json['errorMessage'] as String?,
       skipReason: json['skipReason'] as String?,
     );
