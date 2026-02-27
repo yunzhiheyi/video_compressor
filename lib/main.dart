@@ -16,28 +16,47 @@ import 'presentation/pages/history/history_bloc.dart';
 import 'presentation/pages/settings/settings_bloc.dart';
 import 'services/ffmpeg_service.dart';
 import 'services/storage_service.dart';
+import 'services/foreground_service.dart';
 
 /// 应用程序入口函数
 ///
 /// 1. 确保 Flutter 绑定初始化
-/// 2. 初始化存储服务
-/// 3. 启动应用程序
+/// 2. 初始化前台服务通信端口
+/// 3. 初始化存储服务
+/// 4. 启动应用程序
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 初始化前台服务通信端口（必须在 runApp 之前）
+  ForegroundService.initCommunicationPort();
+
   final storageService = StorageService();
   await storageService.init();
-  runApp(VideoCompressorApp(storageService: storageService));
+
+  // 初始化前台服务
+  final foregroundService = ForegroundService();
+  await foregroundService.init();
+
+  runApp(VideoCompressorApp(
+    storageService: storageService,
+    foregroundService: foregroundService,
+  ));
 }
 
 /// 视频压缩应用程序主 Widget
 ///
 /// 配置应用程序的依赖注入和状态管理：
-/// - RepositoryProvider: FFmpegService, StorageService
+/// - RepositoryProvider: FFmpegService, StorageService, ForegroundService
 /// - BlocProvider: HomeBloc, LocalCompressBloc, HistoryBloc, SettingsBloc
 class VideoCompressorApp extends StatelessWidget {
   final StorageService storageService;
+  final ForegroundService foregroundService;
 
-  const VideoCompressorApp({super.key, required this.storageService});
+  const VideoCompressorApp({
+    super.key,
+    required this.storageService,
+    required this.foregroundService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +64,7 @@ class VideoCompressorApp extends StatelessWidget {
       providers: [
         RepositoryProvider(create: (_) => FFmpegService()),
         RepositoryProvider.value(value: storageService),
+        RepositoryProvider.value(value: foregroundService),
       ],
       child: Builder(
         builder: (context) {
@@ -55,6 +75,7 @@ class VideoCompressorApp extends StatelessWidget {
                 create: (_) => LocalCompressBloc(
                   ffmpegService: context.read<FFmpegService>(),
                   storageService: context.read<StorageService>(),
+                  foregroundService: context.read<ForegroundService>(),
                 )..add(const LoadDefaultConfig()),
               ),
               BlocProvider(

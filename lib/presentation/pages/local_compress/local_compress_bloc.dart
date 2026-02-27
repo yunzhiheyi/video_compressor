@@ -18,6 +18,7 @@ import '../../../data/models/compress_task.dart';
 import '../../../data/models/compress_config.dart';
 import '../../../services/ffmpeg_service.dart';
 import '../../../services/storage_service.dart';
+import '../../../services/foreground_service.dart';
 import 'local_compress_event.dart';
 import 'local_compress_state.dart';
 
@@ -28,6 +29,9 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
 
   /// 存储服务实例
   final StorageService _storageService;
+
+  /// 前台服务实例
+  final ForegroundService? _foregroundService;
 
   /// UUID生成器
   final Uuid _uuid = const Uuid();
@@ -47,8 +51,10 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
   LocalCompressBloc({
     required FFmpegService ffmpegService,
     required StorageService storageService,
+    ForegroundService? foregroundService,
   })  : _ffmpegService = ffmpegService,
         _storageService = storageService,
+        _foregroundService = foregroundService,
         super(const LocalCompressState()) {
     // 注册事件处理器
     on<SelectVideos>(_onSelectVideos);
@@ -436,6 +442,11 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     debugPrint(
         '[LocalCompressBloc] Starting task ${task.id} for ${task.video.path}');
 
+    // 启动前台服务
+    if (_foregroundService != null && Platform.isAndroid) {
+      await _foregroundService!.startCompression(task.video.name ?? 'video');
+    }
+
     // 生成输出路径
     final outputPath =
         await _getOutputPath(task.video.name ?? 'video_${task.id}.mp4');
@@ -502,6 +513,15 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     final tasks = List<CompressTask>.from(state.tasks);
     tasks[index] = tasks[index].copyWith(progress: event.progress);
     emit(state.copyWith(tasks: tasks));
+
+    // 更新前台服务通知
+    if (_foregroundService != null && Platform.isAndroid) {
+      final task = tasks[index];
+      _foregroundService!.updateProgress(
+        task.video.name ?? 'video',
+        event.progress,
+      );
+    }
   }
 
   /// 任务完成处理
@@ -601,6 +621,11 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
         tasks.any((t) => t.isRunning || t.isPending || t.isQueued);
     if (!hasRunning) {
       emit(state.copyWith(isCompressing: false));
+
+      // 所有任务完成，停止前台服务
+      if (_foregroundService != null && Platform.isAndroid) {
+        await _foregroundService!.stopCompression();
+      }
     }
 
     _runningTasks--;
@@ -613,7 +638,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
   void _onCancelCompress(
     CancelCompress event,
     Emitter<LocalCompressState> emit,
-  ) {
+  ) async {
     final index = state.tasks.indexWhere((t) => t.id == event.taskId);
     if (index != -1) {
       final task = state.tasks[index];
@@ -628,6 +653,12 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
 
       if (task.isRunning) {
         _runningTasks--;
+
+        // 完成前台服务任务
+        if (_foregroundService != null && Platform.isAndroid) {
+          await _foregroundService!.completeTask();
+        }
+
         if (_pendingQueue.isNotEmpty) {
           add(const _ProcessQueue());
         }
@@ -706,12 +737,18 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
   }
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
     for (final sub in _subscriptions.values) {
       sub.cancel();
     }
     _subscriptions.clear();
     _pendingQueue.clear();
+
+    // 停止前台服务
+    if (_foregroundService != null && Platform.isAndroid) {
+      await _foregroundService!.stopCompression();
+    }
+
     return super.close();
   }
 }
