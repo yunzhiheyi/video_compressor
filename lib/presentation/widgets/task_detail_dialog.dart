@@ -231,30 +231,32 @@ class TaskDetailDialog extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(
-              before,
-              style: TextStyle(
-                color: isDesktop
-                    ? Colors.white.withValues(alpha: 0.8)
-                    : AppColors.textSecondary,
-                fontSize: 12,
-              ),
-              textAlign: TextAlign.center,
+            child: Row(
+              children: [
+                Text(
+                  before,
+                  style: TextStyle(
+                    color: isDesktop
+                        ? Colors.white.withValues(alpha: 0.8)
+                        : AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_forward,
+                    color: AppColors.textSecondary, size: 14),
+              ],
             ),
           ),
           Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  after,
-                  style: TextStyle(
-                    color: isDesktop ? Colors.white : AppColors.textPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+            child: Text(
+              after,
+              style: TextStyle(
+                color: isDesktop ? Colors.white : AppColors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.right,
             ),
           ),
         ],
