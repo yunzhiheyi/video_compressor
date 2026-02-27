@@ -563,10 +563,12 @@ class _VideoListItemState extends State<VideoListItem> {
       right: 0,
       bottom: 0,
       child: Container(
-        height: 1,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
-        ),
+        height: widget.isDesktop ? 2 : 1,
+        decoration: widget.isDesktop
+            ? null
+            : BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+              ),
         child: FractionallySizedBox(
           alignment: Alignment.centerLeft,
           widthFactor: progress.clamp(0.0, 1.0),

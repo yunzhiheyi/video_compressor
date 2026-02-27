@@ -419,17 +419,33 @@ class TaskDetailDialog extends StatelessWidget {
 
   /// 构建操作按钮区域
   ///
-  /// 桌面端显示"打开文件夹"按钮
+  /// 桌面端显示"播放"和"打开文件夹"按钮
   /// 移动端显示"保存到相册"按钮
   Widget _buildActions(BuildContext context) {
     if (isDesktop) {
-      return ElevatedButton.icon(
-        onPressed: _openFileLocation,
-        icon: const Icon(Icons.folder_open, size: 18),
-        label: const Text('Open Folder'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        ),
+      final outputPath = task.outputPath;
+      final hasOutput = outputPath != null && outputPath.isNotEmpty;
+      return Row(
+        children: [
+          ElevatedButton.icon(
+            onPressed: hasOutput ? () => _playVideo(context) : null,
+            icon: const Icon(Icons.play_arrow, size: 18),
+            label: const Text('Play'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.success,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
+          const SizedBox(width: 12),
+          ElevatedButton.icon(
+            onPressed: hasOutput ? _openFileLocation : null,
+            icon: const Icon(Icons.folder_open, size: 18),
+            label: const Text('Open Folder'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
+        ],
       );
     }
 
