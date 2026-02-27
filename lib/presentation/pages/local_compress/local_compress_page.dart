@@ -650,6 +650,7 @@ class _HistoryPage extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 20),
           Expanded(
             flex: 1,
             child: Text(
