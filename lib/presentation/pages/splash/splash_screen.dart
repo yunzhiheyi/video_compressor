@@ -240,7 +240,7 @@ class _SplashScreenState extends State<SplashScreen>
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: isDesktop ? 24 : 20,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.normal,
                             letterSpacing: 1,
                           ),
                         ),
