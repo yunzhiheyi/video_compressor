@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
@@ -41,9 +42,11 @@ class FFmpegService {
   }
 
   /// 解析FFprobe输出的JSON数据
-  Map<String, dynamic> _parseFFprobeOutput(String json, String path) {
+  Map<String, dynamic> _parseFFprobeOutput(String jsonStr, String path) {
     try {
-      final lines = json.split('\n');
+      // 使用 dart:convert 正确解析 JSON
+      final jsonData = jsonDecode(jsonStr);
+
       String? duration;
       String? width;
       String? height;
@@ -53,69 +56,67 @@ class FFmpegService {
       int? size;
       int? rotation;
 
-      // 逐行解析JSON数据
-      for (final line in lines) {
-        final trimmed = line.trim();
-        if (trimmed.startsWith('"duration":')) {
-          duration = trimmed
-              .split(':')[1]
-              .replaceAll('"', '')
-              .replaceAll(',', '')
-              .trim();
+      // 从 format 中获取时长、码率、大小
+      final format = jsonData['format'] as Map<String, dynamic>?;
+      if (format != null) {
+        duration = format['duration']?.toString();
+        bitrate = format['bit_rate']?.toString();
+        if (format['size'] != null) {
+          size = int.tryParse(format['size'].toString());
         }
-        if (trimmed.startsWith('"width":')) {
-          width = trimmed.split(':')[1].replaceAll(',', '').trim();
-        }
-        if (trimmed.startsWith('"height":')) {
-          height = trimmed.split(':')[1].replaceAll(',', '').trim();
-        }
-        if (trimmed.startsWith('"codec_name":')) {
-          codec ??= trimmed
-              .split(':')[1]
-              .replaceAll('"', '')
-              .replaceAll(',', '')
-              .trim();
-        }
-        if (trimmed.startsWith('"bit_rate":')) {
-          bitrate = trimmed
-              .split(':')[1]
-              .replaceAll('"', '')
-              .replaceAll(',', '')
-              .trim();
-        }
-        if (trimmed.startsWith('"avg_frame_rate":')) {
-          // 帧率格式可能是 "30/1" 或 "30000/1001"
-          final frameRateStr = trimmed
-              .split(':')[1]
-              .replaceAll('"', '')
-              .replaceAll(',', '')
-              .trim();
-          if (frameRateStr.contains('/')) {
-            final parts = frameRateStr.split('/');
-            if (parts.length == 2) {
-              final num = double.tryParse(parts[0]);
-              final den = double.tryParse(parts[1]);
-              if (num != null && den != null && den != 0) {
-                frameRate = (num / den).toStringAsFixed(2);
+      }
+
+      // 从 streams 中获取宽高、编码、帧率、旋转
+      final streams = jsonData['streams'] as List<dynamic>?;
+      if (streams != null && streams.isNotEmpty) {
+        // 找到视频流
+        for (final stream in streams) {
+          if (stream['codec_type'] == 'video') {
+            width = stream['width']?.toString();
+            height = stream['height']?.toString();
+            codec = stream['codec_name']?.toString();
+
+            // 解析帧率
+            final frameRateStr = stream['avg_frame_rate']?.toString();
+            if (frameRateStr != null && frameRateStr.contains('/')) {
+              final parts = frameRateStr.split('/');
+              if (parts.length == 2) {
+                final num = double.tryParse(parts[0]);
+                final den = double.tryParse(parts[1]);
+                if (num != null && den != null && den != 0) {
+                  frameRate = (num / den).toStringAsFixed(2);
+                }
+              }
+            } else if (frameRateStr != null) {
+              frameRate = frameRateStr;
+            }
+
+            // 检测旋转角度 - 在 side_data_list 中
+            final sideDataList = stream['side_data_list'] as List<dynamic>?;
+            if (sideDataList != null) {
+              for (final sideData in sideDataList) {
+                if (sideData['rotation'] != null) {
+                  rotation = int.tryParse(sideData['rotation'].toString());
+                  break;
+                }
               }
             }
-          } else {
-            frameRate = frameRateStr;
+
+            // 也检查 tags 中的 rotate
+            if (rotation == null) {
+              final tags = stream['tags'] as Map<String, dynamic>?;
+              if (tags != null && tags['rotate'] != null) {
+                rotation = int.tryParse(tags['rotate'].toString());
+              }
+            }
+
+            // 检查 display_rotation (新版本 FFprobe)
+            if (rotation == null && stream['display_rotation'] != null) {
+              rotation = int.tryParse(stream['display_rotation'].toString());
+            }
+
+            break; // 只处理第一个视频流
           }
-        }
-        if (trimmed.startsWith('"size":')) {
-          final sizeStr = trimmed
-              .split(':')[1]
-              .replaceAll('"', '')
-              .replaceAll(',', '')
-              .trim();
-          final sizeDouble = double.tryParse(sizeStr);
-          size = sizeDouble?.toInt();
-        }
-        // 检测旋转角度（side_data_list 中的 rotation）
-        if (trimmed.startsWith('"rotation":')) {
-          final rotationStr = trimmed.split(':')[1].replaceAll(',', '').trim();
-          rotation = int.tryParse(rotationStr);
         }
       }
 
