@@ -502,7 +502,7 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
       ),
       itemCount: 18,
       itemBuilder: (context, index) => Container(
-        color: AppColors.surface,
+        color: AppColors.background,
         child: const _ShimmerEffect(),
       ),
     );
