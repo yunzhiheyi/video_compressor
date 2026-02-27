@@ -127,8 +127,8 @@ class StorageService {
 
   /// 获取默认分辨率
   ///
-  /// 默认返回 '1080P'
+  /// 默认返回 '720P'
   String getDefaultResolution() {
-    return _prefs.getString(_resolutionKey) ?? '1080P';
+    return _prefs.getString(_resolutionKey) ?? '720P';
   }
 }
