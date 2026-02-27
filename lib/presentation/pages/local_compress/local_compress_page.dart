@@ -275,6 +275,10 @@ class _VideoCompressPageState extends State<_VideoCompressPage>
                 ? () => _showTaskDetail(context, task)
                 : null,
             onDelete: () => _removeVideo(context, video, task, state),
+            onRetry: task != null && (task.isFailed || task.isSkipped)
+                ? () =>
+                    context.read<LocalCompressBloc>().add(RetryTask(task.id))
+                : null,
           ),
         );
       },

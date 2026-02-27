@@ -67,6 +67,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     on<LoadDefaultConfig>(_onLoadDefaultConfig);
     on<CheckRunningTasks>(_onCheckRunningTasks);
     on<ClearToastMessage>(_onClearToastMessage);
+    on<RetryTask>(_onRetryTask);
     // 内部事件
     on<_StartTask>(_onStartTask);
     on<_UpdateTaskProgress>(_onUpdateTaskProgress);
@@ -833,6 +834,46 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     Emitter<LocalCompressState> emit,
   ) {
     emit(state.copyWith(clearToastMessage: true));
+  }
+
+  /// 重试任务
+  ///
+  /// 将失败或跳过的任务重新加入队列
+  void _onRetryTask(
+    RetryTask event,
+    Emitter<LocalCompressState> emit,
+  ) {
+    final index = state.tasks.indexWhere((t) => t.id == event.taskId);
+    if (index == -1) return;
+
+    final task = state.tasks[index];
+
+    // 只有失败或跳过的任务可以重试
+    if (!task.isFailed && !task.isSkipped) return;
+
+    debugPrint('[LocalCompressBloc] Retrying task ${task.id}');
+
+    // 重置任务状态
+    final tasks = List<CompressTask>.from(state.tasks);
+    tasks[index] = task.copyWith(
+      status: CompressTaskStatus.queued,
+      progress: 0.0,
+      outputPath: null,
+      compressedSize: null,
+      compressedWidth: null,
+      compressedHeight: null,
+      errorMessage: null,
+      skipReason: null,
+    );
+
+    emit(state.copyWith(
+      tasks: tasks,
+      isCompressing: true,
+    ));
+
+    // 加入队列
+    _pendingQueue.add(task.id);
+    add(const _ProcessQueue());
   }
 
   @override

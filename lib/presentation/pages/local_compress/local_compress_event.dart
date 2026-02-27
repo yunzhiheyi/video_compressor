@@ -107,3 +107,15 @@ class CheckRunningTasks extends LocalCompressEvent {
 class ClearToastMessage extends LocalCompressEvent {
   const ClearToastMessage();
 }
+
+/// 重试任务事件
+///
+/// 重新开始失败的任务
+class RetryTask extends LocalCompressEvent {
+  final String taskId;
+
+  const RetryTask(this.taskId);
+
+  @override
+  List<Object?> get props => [taskId];
+}

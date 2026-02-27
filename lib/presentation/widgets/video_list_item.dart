@@ -48,6 +48,9 @@ class VideoListItem extends StatefulWidget {
   /// 删除回调
   final VoidCallback? onDelete;
 
+  /// 重试回调（失败任务点击重试）
+  final VoidCallback? onRetry;
+
   /// 是否为桌面端布局
   final bool isDesktop;
 
@@ -60,6 +63,7 @@ class VideoListItem extends StatefulWidget {
     this.onTapThumbnail,
     this.onTapDetail,
     this.onDelete,
+    this.onRetry,
     this.isDesktop = false,
   });
 
@@ -441,7 +445,7 @@ class _VideoListItemState extends State<VideoListItem> {
       );
     }
 
-    // 失败：显示错误信息
+    // 失败：显示错误信息和重试按钮
     if (task.isFailed) {
       return Padding(
         padding: const EdgeInsets.only(top: 4),
@@ -457,6 +461,21 @@ class _VideoListItemState extends State<VideoListItem> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            if (widget.onRetry != null)
+              GestureDetector(
+                onTap: widget.onRetry,
+                child: const Row(
+                  children: [
+                    SizedBox(width: 8),
+                    Icon(Icons.refresh, color: AppColors.primary, size: 14),
+                    SizedBox(width: 2),
+                    Text(
+                      'Retry',
+                      style: TextStyle(color: AppColors.primary, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       );
