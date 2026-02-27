@@ -616,6 +616,10 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
                 compressedWidth != null && compressedHeight != null
                     ? '${compressedWidth}x$compressedHeight'
                     : '',
+            'duration': task.video.duration?.inSeconds.toDouble() ?? 0,
+            'originalBitrate': task.video.bitrate ?? 0,
+            'compressedBitrate': task.config.bitrate,
+            'frameRate': task.video.frameRate ?? 0,
           });
         }
       }

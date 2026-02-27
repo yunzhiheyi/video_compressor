@@ -33,7 +33,7 @@ class HistoryState extends Equatable {
 /// 代表单个压缩历史记录条目
 ///
 /// 包含已完成压缩操作的所有信息，
-/// 包括文件大小、时间戳和分辨率信息。
+/// 包括文件大小、时间戳、分辨率、码率、帧率信息。
 class HistoryItem extends Equatable {
   /// 历史记录的唯一标识符
   final String id;
@@ -59,6 +59,18 @@ class HistoryItem extends Equatable {
   /// 压缩后视频分辨率（如 "1280x720"）
   final String compressedResolution;
 
+  /// 视频时长（秒）
+  final double duration;
+
+  /// 原始码率（bps）
+  final int originalBitrate;
+
+  /// 压缩后码率（bps）
+  final int compressedBitrate;
+
+  /// 帧率（fps）
+  final double frameRate;
+
   /// 创建新的 [HistoryItem]，使用指定的属性
   const HistoryItem({
     required this.id,
@@ -69,6 +81,10 @@ class HistoryItem extends Equatable {
     required this.outputPath,
     this.originalResolution = '',
     this.compressedResolution = '',
+    this.duration = 0,
+    this.originalBitrate = 0,
+    this.compressedBitrate = 0,
+    this.frameRate = 0,
   });
 
   /// 计算压缩比例（百分比）
@@ -83,6 +99,40 @@ class HistoryItem extends Equatable {
     return (1 - compressedSize / originalSize) * 100;
   }
 
+  /// 格式化时长
+  String get durationFormatted {
+    if (duration <= 0) return '00:00';
+    final h = (duration / 3600).floor();
+    final m = ((duration % 3600) / 60).floor();
+    final s = (duration % 60).floor();
+    if (h > 0) {
+      return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    }
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  /// 格式化原始码率
+  String get originalBitrateFormatted => _formatBitrate(originalBitrate);
+
+  /// 格式化压缩后码率
+  String get compressedBitrateFormatted => _formatBitrate(compressedBitrate);
+
+  /// 格式化帧率
+  String get frameRateFormatted {
+    if (frameRate <= 0) return 'N/A';
+    return '${frameRate.toStringAsFixed(0)} fps';
+  }
+
+  String _formatBitrate(int bitrate) {
+    if (bitrate <= 0) return 'N/A';
+    if (bitrate >= 1000000) {
+      return '${(bitrate / 1000000).toStringAsFixed(1)} Mbps';
+    } else if (bitrate >= 1000) {
+      return '${(bitrate / 1000).toStringAsFixed(0)} Kbps';
+    }
+    return '$bitrate bps';
+  }
+
   @override
   List<Object?> get props => [
         id,
@@ -93,5 +143,9 @@ class HistoryItem extends Equatable {
         outputPath,
         originalResolution,
         compressedResolution,
+        duration,
+        originalBitrate,
+        compressedBitrate,
+        frameRate,
       ];
 }

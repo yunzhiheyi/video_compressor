@@ -577,6 +577,19 @@ class _HistoryPage extends StatelessWidget {
                             ? item.compressedResolution
                             : item.originalResolution,
                       ),
+                    _buildHistoryCompareRow(
+                      'Bitrate',
+                      item.originalBitrateFormatted,
+                      item.compressedBitrateFormatted,
+                    ),
+                    _buildHistoryCompareRow(
+                      'Frame Rate',
+                      item.frameRateFormatted,
+                      item.frameRateFormatted,
+                    ),
+                    if (item.duration > 0)
+                      _buildHistorySingleRow(
+                          'Duration', item.durationFormatted),
                     _buildHistorySingleRow(
                         'Compressed At', _formatDate(item.compressedAt)),
                   ],

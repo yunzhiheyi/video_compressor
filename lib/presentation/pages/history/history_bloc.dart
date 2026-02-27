@@ -79,6 +79,11 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
               outputPath: json['outputPath'] ?? '',
               originalResolution: json['originalResolution'] ?? '',
               compressedResolution: json['compressedResolution'] ?? '',
+              duration: (json['duration'] as num?)?.toDouble() ?? 0,
+              originalBitrate: (json['originalBitrate'] as num?)?.toInt() ?? 0,
+              compressedBitrate:
+                  (json['compressedBitrate'] as num?)?.toInt() ?? 0,
+              frameRate: (json['frameRate'] as num?)?.toDouble() ?? 0,
             ))
         .toList();
     emit(state.copyWith(items: items));
@@ -124,6 +129,10 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
       'outputPath': event.item.outputPath,
       'originalResolution': event.item.originalResolution,
       'compressedResolution': event.item.compressedResolution,
+      'duration': event.item.duration,
+      'originalBitrate': event.item.originalBitrate,
+      'compressedBitrate': event.item.compressedBitrate,
+      'frameRate': event.item.frameRate,
     });
     final items = [event.item, ...state.items];
     emit(state.copyWith(items: items));
