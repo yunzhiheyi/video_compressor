@@ -255,6 +255,34 @@ class FFmpegService {
       debugPrint('[FFmpegService] Failed to get bitrate: $e');
     }
 
+    // 获取原始视频帧率
+    double? originalFrameRate;
+    try {
+      final frameRateSession = await FFprobeKit.execute(
+          '-v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 "$inputPath"');
+      final frameRateOutput = await frameRateSession.getOutput();
+      if (frameRateOutput != null && frameRateOutput.trim().isNotEmpty) {
+        // 帧率格式可能是 "30/1" 或 "30000/1001"
+        final frameRateStr = frameRateOutput.trim();
+        if (frameRateStr.contains('/')) {
+          final parts = frameRateStr.split('/');
+          if (parts.length == 2) {
+            final num = double.tryParse(parts[0]);
+            final den = double.tryParse(parts[1]);
+            if (num != null && den != null && den != 0) {
+              originalFrameRate = num / den;
+            }
+          }
+        } else {
+          originalFrameRate = double.tryParse(frameRateStr);
+        }
+        debugPrint(
+            '[FFmpegService] Original frame rate: $originalFrameRate fps');
+      }
+    } catch (e) {
+      debugPrint('[FFmpegService] Failed to get frame rate: $e');
+    }
+
     // 智能比特率调整：如果原视频比特率低于目标，使用原视频的85%
     int actualBitrate = bitrate;
     if (originalBitrate != null && originalBitrate > 0 && bitrate > 0) {
@@ -266,7 +294,7 @@ class FFmpegService {
     }
 
     final command = _buildCompressCommand(inputPath, outputPath, actualBitrate,
-        width, height, originalWidth, originalHeight);
+        width, height, originalWidth, originalHeight, originalFrameRate);
     debugPrint('[FFmpegService] Command: $command');
 
     yield 0.0;
@@ -408,6 +436,7 @@ class FFmpegService {
   /// [targetHeight] 目标高度
   /// [originalWidth] 原始视频宽度
   /// [originalHeight] 原始视频高度
+  /// [originalFrameRate] 原始视频帧率
   String _buildCompressCommand(
     String inputPath,
     String outputPath,
@@ -416,6 +445,7 @@ class FFmpegService {
     int? targetHeight,
     int? originalWidth,
     int? originalHeight,
+    double? originalFrameRate,
   ) {
     final buffer = StringBuffer();
     buffer.write('-i "$inputPath"');
@@ -491,7 +521,18 @@ class FFmpegService {
     }
 
     if (scaleFilter != null) {
+      // 如果需要限制帧率，添加 fps 滤镜
+      if (originalFrameRate != null && originalFrameRate > 30) {
+        scaleFilter = '$scaleFilter,fps=30';
+        debugPrint(
+            '[FFmpegService] Limiting frame rate from $originalFrameRate to 30 fps');
+      }
       buffer.write(' -vf "$scaleFilter"');
+    } else if (originalFrameRate != null && originalFrameRate > 30) {
+      // 只有帧率限制，没有缩放
+      buffer.write(' -vf "fps=30"');
+      debugPrint(
+          '[FFmpegService] Limiting frame rate from $originalFrameRate to 30 fps');
     }
 
     // 优化MP4播放

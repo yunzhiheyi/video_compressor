@@ -519,13 +519,13 @@ class _VideoListItemState extends State<VideoListItem> {
   Widget _buildProgressWatermark(double progress) {
     final percentage = progress * 100;
     return Positioned(
-      right: 8,
-      bottom: 8,
+      right: 0,
+      bottom: 0,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        // padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           color: AppColors.surface.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(4),
+          // borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -538,7 +538,6 @@ class _VideoListItemState extends State<VideoListItem> {
               textStyle: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: widget.isDesktop ? 20 : 16,
-                fontWeight: FontWeight.w600,
               ),
             ),
             Padding(
