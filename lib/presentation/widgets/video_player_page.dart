@@ -60,8 +60,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           playbackSpeedButtonText: 'Speed',
         ),
         materialProgressColors: ChewieProgressColors(
-          playedColor: AppColors.primary,
-          handleColor: AppColors.primary,
+          playedColor: Colors.white,
+          handleColor: Colors.white,
           backgroundColor: Colors.white24,
           bufferedColor: Colors.white38,
         ),
