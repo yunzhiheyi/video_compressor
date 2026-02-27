@@ -134,7 +134,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                 // Logo 动画
                 Transform.translate(
-                  offset: const Offset(0, -40),
+                  offset: const Offset(0, -80),
                   child: AnimatedBuilder(
                     animation: _logoController,
                     builder: (context, child) {
@@ -146,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen>
                             width: logoSize,
                             height: logoSize,
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
@@ -176,16 +176,16 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 22),
 
                 // 进度条动画
-                AnimatedBuilder(
+            AnimatedBuilder(
                   animation: _progressController,
                   builder: (context, child) {
                     return Opacity(
                       opacity: 0.8,
                       child: Transform.translate(
-                        offset: const Offset(0, -40),
+                        offset: const Offset(0, -80),
                         child: Column(
                           children: [
                             SizedBox(
