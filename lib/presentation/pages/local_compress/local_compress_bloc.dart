@@ -710,6 +710,13 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
         '[LocalCompressBloc] Checking ${runningTasks.length} running tasks on resume');
 
     for (final task in runningTasks) {
+      // 检查任务是否还在 FFmpeg 中运行
+      if (_ffmpegService.isTaskRunning(task.id)) {
+        debugPrint(
+            '[LocalCompressBloc] Task ${task.id} still running in FFmpeg, skipping check');
+        continue;
+      }
+
       // 获取预期的输出路径
       final outputPath =
           await _getOutputPath(task.video.name ?? 'video_${task.id}.mp4');
@@ -733,23 +740,13 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
               outputPath: outputPath,
             ));
           } else {
-            // 等待一小段时间再检查文件是否还在增长
-            await Future.delayed(const Duration(milliseconds: 500));
-            final newSize = await outputFile.length();
-
-            if (newSize > compressedSize) {
-              // 文件还在增长，任务仍在进行中
-              debugPrint(
-                  '[LocalCompressBloc] Task ${task.id} still in progress (file growing: $compressedSize -> $newSize)');
-            } else if (newSize == compressedSize) {
-              // 文件大小没变但不完整，可能是压缩中断了
-              debugPrint(
-                  '[LocalCompressBloc] Task ${task.id} file not growing but invalid, marking as failed');
-              add(_TaskCompleted(
-                taskId: task.id,
-                error: 'Compression interrupted',
-              ));
-            }
+            // 文件不完整，压缩可能中断了
+            debugPrint(
+                '[LocalCompressBloc] Task ${task.id} file invalid, marking as failed');
+            add(_TaskCompleted(
+              taskId: task.id,
+              error: 'Compression interrupted',
+            ));
           }
         }
       } else {

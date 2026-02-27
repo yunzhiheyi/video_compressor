@@ -546,6 +546,12 @@ class FFmpegService {
     }
   }
 
+  /// 检查任务是否还在运行
+  /// [taskId] 任务ID
+  bool isTaskRunning(String taskId) {
+    return _sessionIdMap.containsKey(taskId);
+  }
+
   /// 释放资源
   void dispose() {
     _progressMap.clear();
