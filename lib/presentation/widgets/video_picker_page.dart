@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/loading_overlay.dart';
 import 'video_overlay_player.dart';
 
 /// 视频选择器页面组件
@@ -179,23 +180,33 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
   /// 确认选择并返回结果
   ///
   /// macOS平台打开文件选择器。
-  /// 移动平台返回选中的视频数据（路径和缩略图）。
+  /// 移动平台返回选中的视频数据（路径、缩略图、宽高、时长、大小）。
   Future<void> _confirmSelection() async {
     if (Platform.isMacOS) {
       await _pickFilesOnMacOS();
       return;
     }
 
+    LoadingOverlay.show(context);
+
     final List<Map<String, dynamic>> videoData = [];
     for (final video in _selectedVideos) {
       final file = await video.file;
       if (file != null) {
+        final fileSize = await file.length();
         videoData.add({
           'path': file.path,
+          'name': file.path.split('/').last,
           'thumbnailBytes': _thumbnailCache[video.id],
+          'width': video.width,
+          'height': video.height,
+          'duration': video.duration.toDouble(),
+          'size': fileSize,
         });
       }
     }
+
+    LoadingOverlay.hide();
     if (mounted) Navigator.pop(context, videoData);
   }
 

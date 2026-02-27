@@ -8,7 +8,6 @@ class LoadingOverlay {
     BuildContext context, {
     Color? indicatorColor,
     double indicatorWidth = 3.0,
-    String? message,
     Color? backgroundColor,
   }) {
     hide();
@@ -17,7 +16,6 @@ class LoadingOverlay {
       builder: (context) => _LoadingWidget(
         indicatorColor: indicatorColor,
         indicatorWidth: indicatorWidth,
-        message: message,
         backgroundColor: backgroundColor,
       ),
     );
@@ -36,13 +34,11 @@ class LoadingOverlay {
 class _LoadingWidget extends StatelessWidget {
   final Color? indicatorColor;
   final double indicatorWidth;
-  final String? message;
   final Color? backgroundColor;
 
   const _LoadingWidget({
     this.indicatorColor,
     this.indicatorWidth = 3.0,
-    this.message,
     this.backgroundColor,
   });
 
@@ -57,18 +53,21 @@ class _LoadingWidget extends StatelessWidget {
         ),
         Center(
           child: Container(
-            padding: const EdgeInsets.all(24),
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               color: backgroundColor ?? const Color(0xCC000000),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(
-                strokeWidth: indicatorWidth,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  indicatorColor ?? AppColors.primary,
+            child: Center(
+              child: SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(
+                  strokeWidth: indicatorWidth,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    indicatorColor ?? AppColors.primary,
+                  ),
                 ),
               ),
             ),

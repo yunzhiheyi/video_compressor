@@ -129,61 +129,42 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
 
   /// 选择视频
   ///
-  /// 并行获取视频信息并添加到已选列表
-  Future<void> _onSelectVideos(
+  /// 从视频数据创建VideoInfo并添加到已选列表
+  void _onSelectVideos(
     SelectVideos event,
     Emitter<LocalCompressState> emit,
-  ) async {
+  ) {
     debugPrint(
         '[LocalCompressBloc] Selecting videos: ${event.videoDataList.length}');
 
-    // 过滤已存在的视频
-    final newVideoDataList = event.videoDataList.where((videoData) {
+    final newVideos = <VideoInfo>[];
+    for (final videoData in event.videoDataList) {
       final path = videoData['path'] as String;
-      return !state.selectedVideos.any((v) => v.path == path);
-    }).toList();
 
-    if (newVideoDataList.isEmpty) {
-      debugPrint('[LocalCompressBloc] No new videos to add');
-      return;
+      // 跳过已存在的视频
+      if (state.selectedVideos.any((v) => v.path == path)) continue;
+
+      final videoInfo = VideoInfo(
+        path: path,
+        name: videoData['name'] as String?,
+        size: videoData['size'] as int?,
+        width: videoData['width'] as int?,
+        height: videoData['height'] as int?,
+        duration: videoData['duration'] != null
+            ? Duration(
+                milliseconds: ((videoData['duration'] as num) * 1000).toInt())
+            : null,
+        thumbnailBytes: videoData['thumbnailBytes'] as Uint8List?,
+      );
+      newVideos.add(videoInfo);
     }
-
-    // 先显示 loading
-    emit(state.copyWith(isLoadingVideos: true));
-
-    // 并行获取所有视频信息
-    final futures = newVideoDataList.map((videoData) async {
-      final path = videoData['path'] as String;
-      final thumbnailBytes = videoData['thumbnailBytes'] as Uint8List?;
-
-      try {
-        final info = await _ffmpegService.getVideoInfo(path);
-        return VideoInfo.fromJson(info).copyWith(
-          thumbnailBytes: thumbnailBytes,
-        );
-      } catch (e) {
-        debugPrint(
-            '[LocalCompressBloc] Failed to get video info for $path: $e');
-        return null;
-      }
-    }).toList();
-
-    final results = await Future.wait(futures);
-
-    // 过滤掉失败的结果
-    final newVideos = results.whereType<VideoInfo>().toList();
 
     // 追加新视频到现有列表
     final allVideos = [...state.selectedVideos, ...newVideos];
 
     debugPrint(
         '[LocalCompressBloc] Total ${allVideos.length} videos (${newVideos.length} new)');
-
-    // 更新列表并隐藏 loading
-    emit(state.copyWith(
-      selectedVideos: allVideos,
-      isLoadingVideos: false,
-    ));
+    emit(state.copyWith(selectedVideos: allVideos));
   }
 
   /// 移除已选视频
