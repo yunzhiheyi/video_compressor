@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/theme/app_theme.dart';
-import 'presentation/pages/home/home_page.dart';
+import 'presentation/pages/splash/splash_screen.dart';
 import 'presentation/pages/home/home_bloc.dart';
 import 'presentation/pages/local_compress/local_compress_bloc.dart';
 import 'presentation/pages/local_compress/local_compress_event.dart';
@@ -95,7 +95,7 @@ class VideoCompressorApp extends StatelessWidget {
               title: 'Video Compressor',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.dark,
-              home: const HomePage(),
+              home: const SplashScreen(),
             ),
           );
         },
