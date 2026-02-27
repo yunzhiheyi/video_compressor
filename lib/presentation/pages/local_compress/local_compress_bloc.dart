@@ -66,6 +66,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     on<ClearCompleted>(_onClearCompleted);
     on<LoadDefaultConfig>(_onLoadDefaultConfig);
     on<CheckRunningTasks>(_onCheckRunningTasks);
+    on<ClearToastMessage>(_onClearToastMessage);
     // 内部事件
     on<_StartTask>(_onStartTask);
     on<_UpdateTaskProgress>(_onUpdateTaskProgress);
@@ -328,11 +329,18 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     // 检查是否有需要压缩的任务（非跳过）
     final hasCompressTasks = newTasks.any((t) => !t.isSkipped);
 
+    // iOS 提示用户保持前台
+    String? toastMessage;
+    if (hasCompressTasks && Platform.isIOS) {
+      toastMessage = 'Please keep the app in foreground during compression';
+    }
+
     emit(
       state.copyWith(
         tasks: allTasks,
         isCompressing: hasCompressTasks,
         config: latestConfig,
+        toastMessage: toastMessage,
       ),
     );
 
@@ -785,6 +793,14 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
         ));
       }
     }
+  }
+
+  /// 清除 Toast 消息
+  void _onClearToastMessage(
+    ClearToastMessage event,
+    Emitter<LocalCompressState> emit,
+  ) {
+    emit(state.copyWith(clearToastMessage: true));
   }
 
   @override

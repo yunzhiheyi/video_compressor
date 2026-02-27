@@ -179,15 +179,26 @@ class _VideoCompressPageState extends State<_VideoCompressPage>
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LocalCompressBloc, LocalCompressState>(
-      builder: (context, state) {
-        return Column(
-          children: [
-            Expanded(child: _buildContent(context, state)),
-            if (state.hasVideos) _buildBottomBar(context, state),
-          ],
-        );
+    return BlocListener<LocalCompressBloc, LocalCompressState>(
+      listenWhen: (previous, current) =>
+          previous.toastMessage != current.toastMessage &&
+          current.toastMessage != null,
+      listener: (context, state) {
+        if (state.toastMessage != null) {
+          AppToast.show(context, state.toastMessage!);
+          context.read<LocalCompressBloc>().add(const ClearToastMessage());
+        }
       },
+      child: BlocBuilder<LocalCompressBloc, LocalCompressState>(
+        builder: (context, state) {
+          return Column(
+            children: [
+              Expanded(child: _buildContent(context, state)),
+              if (state.hasVideos) _buildBottomBar(context, state),
+            ],
+          );
+        },
+      ),
     );
   }
 

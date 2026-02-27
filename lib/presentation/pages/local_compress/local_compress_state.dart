@@ -23,12 +23,16 @@ class LocalCompressState extends Equatable {
   /// 错误信息
   final String? errorMessage;
 
+  /// Toast 提示信息（显示后应清除）
+  final String? toastMessage;
+
   const LocalCompressState({
     this.selectedVideos = const [],
     this.config = const CompressConfig(),
     this.tasks = const [],
     this.isCompressing = false,
     this.errorMessage,
+    this.toastMessage,
   });
 
   /// 是否有已选视频
@@ -53,6 +57,8 @@ class LocalCompressState extends Equatable {
     List<CompressTask>? tasks,
     bool? isCompressing,
     String? errorMessage,
+    String? toastMessage,
+    bool clearToastMessage = false,
   }) {
     return LocalCompressState(
       selectedVideos: selectedVideos ?? this.selectedVideos,
@@ -60,6 +66,8 @@ class LocalCompressState extends Equatable {
       tasks: tasks ?? this.tasks,
       isCompressing: isCompressing ?? this.isCompressing,
       errorMessage: errorMessage,
+      toastMessage:
+          clearToastMessage ? null : (toastMessage ?? this.toastMessage),
     );
   }
 
@@ -70,5 +78,6 @@ class LocalCompressState extends Equatable {
         tasks,
         isCompressing,
         errorMessage,
+        toastMessage,
       ];
 }

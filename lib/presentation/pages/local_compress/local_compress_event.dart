@@ -100,3 +100,10 @@ class RemoveSelectedVideo extends LocalCompressEvent {
 class CheckRunningTasks extends LocalCompressEvent {
   const CheckRunningTasks();
 }
+
+/// 清除 Toast 消息事件
+///
+/// UI 显示完 Toast 后调用此事件清除消息
+class ClearToastMessage extends LocalCompressEvent {
+  const ClearToastMessage();
+}
