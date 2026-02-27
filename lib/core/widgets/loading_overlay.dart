@@ -57,7 +57,7 @@ class _LoadingWidget extends StatelessWidget {
             height: 60,
             decoration: BoxDecoration(
               color: backgroundColor ?? const Color(0xCC000000),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Center(
               child: SizedBox(

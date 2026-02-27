@@ -18,7 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/widgets/loading_overlay.dart';
 import 'video_overlay_player.dart';
 
 /// 视频选择器页面组件
@@ -187,8 +186,6 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
       return;
     }
 
-    LoadingOverlay.show(context);
-
     final List<Map<String, dynamic>> videoData = [];
     for (final video in _selectedVideos) {
       final file = await video.file;
@@ -206,7 +203,6 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
       }
     }
 
-    LoadingOverlay.hide();
     if (mounted) Navigator.pop(context, videoData);
   }
 

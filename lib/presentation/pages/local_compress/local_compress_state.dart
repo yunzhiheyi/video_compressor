@@ -20,9 +20,6 @@ class LocalCompressState extends Equatable {
   /// 是否正在压缩中
   final bool isCompressing;
 
-  /// 是否正在加载视频信息
-  final bool isLoadingVideos;
-
   /// 错误信息
   final String? errorMessage;
 
@@ -31,7 +28,6 @@ class LocalCompressState extends Equatable {
     this.config = const CompressConfig(),
     this.tasks = const [],
     this.isCompressing = false,
-    this.isLoadingVideos = false,
     this.errorMessage,
   });
 
@@ -56,7 +52,6 @@ class LocalCompressState extends Equatable {
     CompressConfig? config,
     List<CompressTask>? tasks,
     bool? isCompressing,
-    bool? isLoadingVideos,
     String? errorMessage,
   }) {
     return LocalCompressState(
@@ -64,7 +59,6 @@ class LocalCompressState extends Equatable {
       config: config ?? this.config,
       tasks: tasks ?? this.tasks,
       isCompressing: isCompressing ?? this.isCompressing,
-      isLoadingVideos: isLoadingVideos ?? this.isLoadingVideos,
       errorMessage: errorMessage,
     );
   }
@@ -75,7 +69,6 @@ class LocalCompressState extends Equatable {
         config,
         tasks,
         isCompressing,
-        isLoadingVideos,
         errorMessage,
       ];
 }
