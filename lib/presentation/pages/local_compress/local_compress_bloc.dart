@@ -658,17 +658,25 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
   /// 检查运行中的任务（应用恢复时调用）
   ///
   /// 验证运行中的任务是否实际已完成（处理息屏后回调丢失的情况）
+  /// 同时强制刷新UI状态并根据输出文件估算进度
   Future<void> _onCheckRunningTasks(
     CheckRunningTasks event,
     Emitter<LocalCompressState> emit,
   ) async {
     final runningTasks = state.tasks.where((t) => t.isRunning).toList();
+
     if (runningTasks.isEmpty) return;
 
     debugPrint(
         '[LocalCompressBloc] Checking ${runningTasks.length} running tasks on resume');
 
+    var tasks = List<CompressTask>.from(state.tasks);
+    bool hasChanges = false;
+
     for (final task in runningTasks) {
+      final index = tasks.indexWhere((t) => t.id == task.id);
+      if (index == -1) continue;
+
       // 获取预期的输出路径
       final outputPath =
           await _getOutputPath(task.video.name ?? 'video_${task.id}.mp4');
@@ -680,27 +688,56 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
             '[LocalCompressBloc] Found output file for task ${task.id}: $compressedSize bytes');
 
         if (compressedSize > 0) {
-          // 文件存在且有内容，认为任务已完成
-          int? compressedWidth;
-          int? compressedHeight;
-          try {
-            final outputInfo = await _ffmpegService.getVideoInfo(outputPath);
-            compressedWidth = outputInfo['width'] as int?;
-            compressedHeight = outputInfo['height'] as int?;
-          } catch (e) {
-            debugPrint('[LocalCompressBloc] Failed to get output info: $e');
+          // 根据原始大小估算进度
+          final originalSize = task.video.size ?? 0;
+          double estimatedProgress = task.progress;
+          if (originalSize > 0) {
+            // 假设压缩后大小约为原始的50-70%
+            estimatedProgress =
+                (compressedSize / (originalSize * 0.6)).clamp(0.1, 0.95);
           }
 
-          // 直接触发完成事件
-          add(_TaskCompleted(
-            taskId: task.id,
-            outputPath: outputPath,
-          ));
+          // 更新进度
+          if (estimatedProgress > task.progress) {
+            tasks[index] = tasks[index].copyWith(progress: estimatedProgress);
+            hasChanges = true;
+          }
+
+          // 如果进度接近完成（>95%），检查是否真的完成了
+          if (estimatedProgress > 0.95) {
+            // 等待一小段时间再检查文件是否还在增长
+            await Future.delayed(const Duration(milliseconds: 500));
+            final newSize = await outputFile.length();
+
+            if (newSize == compressedSize) {
+              // 文件大小没变，认为已完成
+              int? compressedWidth;
+              int? compressedHeight;
+              try {
+                final outputInfo =
+                    await _ffmpegService.getVideoInfo(outputPath);
+                compressedWidth = outputInfo['width'] as int?;
+                compressedHeight = outputInfo['height'] as int?;
+              } catch (e) {
+                debugPrint('[LocalCompressBloc] Failed to get output info: $e');
+              }
+
+              add(_TaskCompleted(
+                taskId: task.id,
+                outputPath: outputPath,
+              ));
+            }
+          }
         }
       } else {
         debugPrint(
             '[LocalCompressBloc] Output file not found for task ${task.id}');
       }
+    }
+
+    // 强制刷新状态，触发UI更新
+    if (hasChanges) {
+      emit(state.copyWith(tasks: tasks));
     }
   }
 
