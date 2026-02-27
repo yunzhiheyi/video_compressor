@@ -595,7 +595,7 @@ class _HistoryPage extends StatelessWidget {
                     _buildHistoryCompareRow(
                       'Frame Rate',
                       item.frameRateFormatted,
-                      item.frameRateFormatted,
+                      _getCompressedFrameRateFormatted(item.frameRate),
                     ),
                     if (item.duration > 0)
                       _buildHistorySingleRow(
@@ -743,6 +743,14 @@ class _HistoryPage extends StatelessWidget {
       return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     }
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  }
+
+  /// 获取压缩后的帧率格式化字符串（如果原帧率 > 30fps，则限制为 30fps）
+  String _getCompressedFrameRateFormatted(double? originalFrameRate) {
+    if (originalFrameRate == null || originalFrameRate <= 0) return 'N/A';
+    final compressedFrameRate =
+        originalFrameRate > 30 ? 30.0 : originalFrameRate;
+    return '${compressedFrameRate.toStringAsFixed(0)} fps';
   }
 
   String _formatDate(DateTime date) {

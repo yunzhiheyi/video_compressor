@@ -70,6 +70,14 @@ class TaskDetailDialog extends StatelessWidget {
     return '${frameRate.toStringAsFixed(0)} fps';
   }
 
+  /// 获取压缩后的帧率（如果原帧率 > 30fps，则限制为 30fps）
+  double? _getCompressedFrameRate(double? originalFrameRate) {
+    if (originalFrameRate == null || originalFrameRate == 0)
+      return originalFrameRate;
+    if (originalFrameRate > 30) return 30;
+    return originalFrameRate;
+  }
+
   String _formatResolution(int? width, int? height) {
     if (width == null || height == null) return 'N/A';
     return '${width}x$height';
@@ -378,7 +386,7 @@ class TaskDetailDialog extends StatelessWidget {
               _buildCompareRow(
                 'Frame Rate',
                 _formatFrameRate(video.frameRate),
-                _formatFrameRate(video.frameRate),
+                _formatFrameRate(_getCompressedFrameRate(video.frameRate)),
               ),
               if (video.duration != null)
                 _buildSingleRow('Duration', video.durationFormatted),
