@@ -14,7 +14,7 @@ flutter_native_splash:
     color_dark: "#0D0D0D"
 
   # 隐藏状态栏
-  fullscreen: true
+  fullscreen: false
 
   # 保持启动画面直到 Flutter 准备好
   android_gravity: center

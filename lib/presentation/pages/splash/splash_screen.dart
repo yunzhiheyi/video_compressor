@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/constants/app_colors.dart';
 import '../home/home_page.dart';
 
@@ -110,31 +111,37 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     final isDesktop = Platform.isMacOS;
     final logoSize = isDesktop ? 120.0 : 90.0;
-    final iconSize = isDesktop ? 60.0 : 48.0;
+    final iconSize = isDesktop ? 60.0 : 52.0;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.background,
-              AppColors.background.withBlue(20),
-            ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.background,
+                AppColors.background.withBlue(20),
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(flex: 2),
+          child: SafeArea(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Spacer(flex: 2),
 
-                // Logo 动画
-                Transform.translate(
-                  offset: const Offset(0, -80),
+                  // Logo 动画
+                  Transform.translate(
+                    offset: const Offset(0, -80),
                   child: AnimatedBuilder(
                     animation: _logoController,
                     builder: (context, child) {
@@ -154,7 +161,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   AppColors.primaryDark,
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
                                   color:
@@ -165,7 +172,7 @@ class _SplashScreenState extends State<SplashScreen>
                               ],
                             ),
                             child: Icon(
-                              Icons.compress_rounded,
+                              Icons.compress,
                               size: iconSize,
                               color: Colors.white,
                             ),
@@ -179,13 +186,13 @@ class _SplashScreenState extends State<SplashScreen>
                 const SizedBox(height: 22),
 
                 // 进度条动画
-            AnimatedBuilder(
+                AnimatedBuilder(
                   animation: _progressController,
                   builder: (context, child) {
                     return Opacity(
                       opacity: 0.8,
                       child: Transform.translate(
-                        offset: const Offset(0, -80),
+                        offset: const Offset(0, -70),
                         child: Column(
                           children: [
                             SizedBox(
