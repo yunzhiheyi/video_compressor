@@ -133,43 +133,47 @@ class _SplashScreenState extends State<SplashScreen>
                 const Spacer(flex: 2),
 
                 // Logo 动画
-                AnimatedBuilder(
-                  animation: _logoController,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _logoOpacity.value,
-                      child: Transform.scale(
-                        scale: _logoScale.value,
-                        child: Container(
-                          width: logoSize,
-                          height: logoSize,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                AppColors.primary,
-                                AppColors.primaryDark,
+                Transform.translate(
+                  offset: const Offset(0, -40),
+                  child: AnimatedBuilder(
+                    animation: _logoController,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: _logoOpacity.value,
+                        child: Transform.scale(
+                          scale: _logoScale.value,
+                          child: Container(
+                            width: logoSize,
+                            height: logoSize,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppColors.primary,
+                                  AppColors.primaryDark,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.3),
+                                  blurRadius: 30,
+                                  spreadRadius: 5,
+                                ),
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.3),
-                                blurRadius: 30,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.compress_rounded,
-                            size: iconSize,
-                            color: Colors.white,
+                            child: Icon(
+                              Icons.compress_rounded,
+                              size: iconSize,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
 
                 const SizedBox(height: 32),
@@ -180,47 +184,51 @@ class _SplashScreenState extends State<SplashScreen>
                   builder: (context, child) {
                     return Opacity(
                       opacity: 0.8,
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            width: isDesktop ? 200 : 160,
-                            height: 3,
-                            child: Stack(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                                FractionallySizedBox(
-                                  alignment: Alignment.centerLeft,
-                                  widthFactor: _progressValue.value,
-                                  child: Container(
+                      child: Transform.translate(
+                        offset: const Offset(0, -40),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              width: isDesktop ? 200 : 160,
+                              height: 3,
+                              child: Stack(
+                                children: [
+                                  Container(
                                     decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          AppColors.primary,
-                                          AppColors.primaryLight,
-                                        ],
-                                      ),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(2),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  FractionallySizedBox(
+                                    alignment: Alignment.centerLeft,
+                                    widthFactor: _progressValue.value,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            AppColors.primary,
+                                            AppColors.primaryLight,
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            '${(_progressValue.value * 100).toStringAsFixed(0)}%',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontSize: isDesktop ? 16 : 14,
-                              fontWeight: FontWeight.w500,
+                            const SizedBox(height: 12),
+                            Text(
+                              '${(_progressValue.value * 100).toStringAsFixed(0)}%',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: isDesktop ? 16 : 14,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
