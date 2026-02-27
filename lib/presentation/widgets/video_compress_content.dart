@@ -279,11 +279,25 @@ class VideoCompressContentState extends State<VideoCompressContent>
 
     final videoDataList = await Navigator.push<List<Map<String, dynamic>>>(
       context,
-      MaterialPageRoute(
-        builder: (context) => VideoPickerPage(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            VideoPickerPage(
           maxCount: 10,
           ffmpegService: context.read<FFmpegService>(),
         ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          final tween = Tween(begin: begin, end: end);
+          final curvedAnimation = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
+          return SlideTransition(
+            position: tween.animate(curvedAnimation),
+            child: child,
+          );
+        },
         fullscreenDialog: true,
       ),
     );

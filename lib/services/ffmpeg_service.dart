@@ -283,13 +283,13 @@ class FFmpegService {
       debugPrint('[FFmpegService] Failed to get frame rate: $e');
     }
 
-    // 智能比特率调整：如果原视频比特率低于目标，使用原视频的85%
+    // 智能比特率调整：如果原视频比特率低于目标，直接使用原视频比特率
     int actualBitrate = bitrate;
     if (originalBitrate != null && originalBitrate > 0 && bitrate > 0) {
       if (originalBitrate <= bitrate) {
-        actualBitrate = (originalBitrate * 0.85).toInt();
+        actualBitrate = originalBitrate;
         debugPrint(
-            '[FFmpegService] Original bitrate lower than target, using $actualBitrate bps');
+            '[FFmpegService] Original bitrate ($originalBitrate) <= target ($bitrate), using original');
       }
     }
 
