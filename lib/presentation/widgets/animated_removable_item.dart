@@ -11,7 +11,7 @@ class AnimatedRemovableItem extends StatefulWidget {
     required this.child,
     required this.onRemove,
     this.slideDuration = const Duration(milliseconds: 200),
-    this.shrinkDuration = const Duration(milliseconds: 150),
+    this.shrinkDuration = const Duration(milliseconds: 300),
   });
 
   @override
