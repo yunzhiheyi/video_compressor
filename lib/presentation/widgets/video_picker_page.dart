@@ -502,8 +502,8 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
       ),
       itemCount: 18,
       itemBuilder: (context, index) => Container(
-        color: AppColors.background,
-        child: const _ShimmerEffect(),
+        color: AppColors.surface,
+        child: const SizedBox.expand(),
       ),
     );
   }
@@ -895,65 +895,5 @@ class _VideoThumbnailWidgetState extends State<_VideoThumbnailWidget>
     }
 
     return Container(color: AppColors.surface);
-  }
-}
-
-/// 骨架屏闪烁效果
-class _ShimmerEffect extends StatefulWidget {
-  const _ShimmerEffect();
-
-  @override
-  State<_ShimmerEffect> createState() => _ShimmerEffectState();
-}
-
-class _ShimmerEffectState extends State<_ShimmerEffect>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..repeat();
-    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return ShaderMask(
-          shaderCallback: (bounds) {
-            return LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: const [
-                Color(0xFF2A2A2A),
-                Color(0xFF3A3A3A),
-                Color(0xFF2A2A2A),
-              ],
-              stops: [
-                _animation.value - 0.3,
-                _animation.value,
-                _animation.value + 0.3,
-              ],
-            ).createShader(bounds);
-          },
-          child: Container(color: AppColors.surface),
-        );
-      },
-    );
   }
 }

@@ -49,6 +49,7 @@ class FFmpegService {
       String? height;
       String? codec;
       String? bitrate;
+      String? frameRate;
       int? size;
 
       // 逐行解析JSON数据
@@ -81,6 +82,26 @@ class FFmpegService {
               .replaceAll(',', '')
               .trim();
         }
+        if (trimmed.startsWith('"avg_frame_rate":')) {
+          // 帧率格式可能是 "30/1" 或 "30000/1001"
+          final frameRateStr = trimmed
+              .split(':')[1]
+              .replaceAll('"', '')
+              .replaceAll(',', '')
+              .trim();
+          if (frameRateStr.contains('/')) {
+            final parts = frameRateStr.split('/');
+            if (parts.length == 2) {
+              final num = double.tryParse(parts[0]);
+              final den = double.tryParse(parts[1]);
+              if (num != null && den != null && den != 0) {
+                frameRate = (num / den).toStringAsFixed(2);
+              }
+            }
+          } else {
+            frameRate = frameRateStr;
+          }
+        }
         if (trimmed.startsWith('"size":')) {
           final sizeStr = trimmed
               .split(':')[1]
@@ -101,6 +122,7 @@ class FFmpegService {
         'height': height != null ? int.tryParse(height) : null,
         'codec': codec,
         'bitrate': bitrate != null ? int.tryParse(bitrate) : null,
+        'frameRate': frameRate != null ? double.tryParse(frameRate) : null,
       };
     } catch (e) {
       debugPrint('[FFmpegService] Parse error: $e');

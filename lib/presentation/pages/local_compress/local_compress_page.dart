@@ -521,6 +521,7 @@ class _HistoryPage extends StatelessWidget {
                       fontSize: 18,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
+              // 大小对比
               Row(
                 children: [
                   Align(
@@ -553,17 +554,34 @@ class _HistoryPage extends StatelessWidget {
                   ),
                 ],
               ),
-              if (item.originalResolution.isNotEmpty ||
-                  item.compressedResolution.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                if (item.originalResolution.isNotEmpty)
-                  _buildDetailRow(
-                      'Original Resolution', item.originalResolution),
-                if (item.compressedResolution.isNotEmpty)
-                  _buildDetailRow(
-                      'Compressed Resolution', item.compressedResolution),
-              ],
-              _buildDetailRow('Compressed At', _formatDate(item.compressedAt)),
+              const SizedBox(height: 16),
+              // 详细信息表格
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    _buildHistoryCompareRow(
+                      'Size',
+                      _formatSize(item.originalSize),
+                      _formatSize(item.compressedSize),
+                    ),
+                    if (item.originalResolution.isNotEmpty)
+                      _buildHistoryCompareRow(
+                        'Resolution',
+                        item.originalResolution,
+                        item.compressedResolution.isNotEmpty
+                            ? item.compressedResolution
+                            : item.originalResolution,
+                      ),
+                    _buildHistorySingleRow(
+                        'Compressed At', _formatDate(item.compressedAt)),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -609,14 +627,66 @@ class _HistoryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildHistoryCompareRow(String label, String before, String after) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              before,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const Icon(Icons.arrow_forward,
+              color: AppColors.textSecondary, size: 14),
+          Expanded(
+            child: Text(
+              after,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistorySingleRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textSecondary)),
-          Text(value, style: const TextStyle(color: AppColors.textPrimary)),
+          Text(label,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              )),
+          Text(value,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              )),
         ],
       ),
     );

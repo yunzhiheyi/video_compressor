@@ -261,12 +261,45 @@ class TaskDetailDialog extends StatelessWidget {
     );
   }
 
+  /// 构建单值行组件（只显示一个值，不需要对比）
+  Widget _buildSingleRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: isDesktop
+                  ? Colors.white.withValues(alpha: 0.6)
+                  : AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: isDesktop ? Colors.white : AppColors.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final video = task.video;
     final originalResolution = _formatResolution(video.width, video.height);
     final compressedResolution =
         _formatResolution(task.compressedWidth, task.compressedHeight);
+    // 如果压缩后分辨率获取不到，使用原始分辨率
+    final displayCompressedResolution = compressedResolution == 'N/A'
+        ? originalResolution
+        : compressedResolution;
 
     final content = Column(
       mainAxisSize: MainAxisSize.min,
@@ -333,7 +366,7 @@ class TaskDetailDialog extends StatelessWidget {
               _buildCompareRow(
                 'Resolution',
                 originalResolution,
-                compressedResolution,
+                displayCompressedResolution,
               ),
               _buildCompareRow(
                 'Bitrate',
@@ -346,11 +379,7 @@ class TaskDetailDialog extends StatelessWidget {
                 _formatFrameRate(video.frameRate),
               ),
               if (video.duration != null)
-                _buildCompareRow(
-                  'Duration',
-                  video.durationFormatted,
-                  video.durationFormatted,
-                ),
+                _buildSingleRow('Duration', video.durationFormatted),
             ],
           ),
         ),
