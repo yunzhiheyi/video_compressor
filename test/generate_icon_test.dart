@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:flutter_test/flutter_test.dart';
 
-Future<void> main() async {
+void main() async {
   const size = 1024.0;
 
   final recorder = ui.PictureRecorder();
@@ -100,10 +101,18 @@ Future<void> main() async {
 
   if (byteData != null) {
     final buffer = byteData.buffer.asUint8List();
+    // 使用项目根目录的相对路径
     final file = File('assets/icon/app_icon.png');
     await file.parent.create(recursive: true);
     await file.writeAsBytes(buffer);
+
+    // 也生成 foreground 图标（无背景）
     print('Icon saved to: ${file.path}');
     print('Size: ${buffer.length} bytes');
+
+    // 复制为 adaptive icon foreground
+    final foregroundFile = File('assets/icon/app_icon_foreground.png');
+    await file.copy(foregroundFile.path);
+    print('Foreground icon saved to: ${foregroundFile.path}');
   }
 }
