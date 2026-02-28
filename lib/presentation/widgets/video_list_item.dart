@@ -40,6 +40,9 @@ class VideoListItem extends StatefulWidget {
   /// 点击缩略图回调
   final VoidCallback? onTapThumbnail;
 
+  /// 点击缩略图回调（支持 Hero 动画，传递缩略图位置）
+  final Function(VideoInfo video, Rect thumbnailRect)? onTapThumbnailWithRect;
+
   /// 点击详情回调（压缩完成后点击查看详情）
   final VoidCallback? onTapDetail;
 
@@ -58,6 +61,7 @@ class VideoListItem extends StatefulWidget {
     required this.ffmpegService,
     this.task,
     this.onTapThumbnail,
+    this.onTapThumbnailWithRect,
     this.onTapDetail,
     this.onDelete,
     this.onRetry,
@@ -80,6 +84,9 @@ class _VideoListItemState extends State<VideoListItem> {
 
   /// 正在加载中的路径集合（防止重复加载）
   static final Set<String> _loadingPaths = {};
+
+  /// 缩略图组件的 GlobalKey，用于获取位置
+  final GlobalKey _thumbnailKey = GlobalKey();
 
   @override
   void initState() {
@@ -231,7 +238,7 @@ class _VideoListItemState extends State<VideoListItem> {
                 children: [
                   Align(
                     alignment: Alignment.center,
-                    child: _buildThumbnail(),
+                    child: ClipRect(child: _buildThumbnail()),
                   ),
                   const SizedBox(width: 12),
                   Expanded(child: _buildInfo()),
@@ -253,7 +260,8 @@ class _VideoListItemState extends State<VideoListItem> {
   /// 构建缩略图
   Widget _buildThumbnail() {
     return GestureDetector(
-      onTap: widget.onTapThumbnail,
+      key: _thumbnailKey,
+      onTap: _handleThumbnailTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Container(
@@ -307,7 +315,7 @@ class _VideoListItemState extends State<VideoListItem> {
               Positioned.fill(
                 child: Center(
                   child: GestureDetector(
-                    onTap: widget.onTapThumbnail,
+                    onTap: _handleThumbnailTap,
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
@@ -324,6 +332,41 @@ class _VideoListItemState extends State<VideoListItem> {
           ),
         ),
       ),
+    );
+  }
+
+  /// 处理缩略图点击
+  void _handleThumbnailTap() {
+    // 如果提供了带位置的回调，计算位置并调用
+    if (widget.onTapThumbnailWithRect != null) {
+      final rect = _getThumbnailRect();
+      widget.onTapThumbnailWithRect!(widget.video, rect);
+      return;
+    }
+
+    // 否则使用旧的回调
+    widget.onTapThumbnail?.call();
+  }
+
+  /// 获取缩略图在屏幕上的位置
+  ///
+  /// 返回缩略图容器的实际位置和尺寸，用于 Hero 动画
+  Rect _getThumbnailRect() {
+    final renderObject = _thumbnailKey.currentContext?.findRenderObject();
+    if (renderObject is RenderBox) {
+      final size = renderObject.size;
+      final position = renderObject.localToGlobal(Offset.zero);
+      return Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
+    }
+    // 如果无法获取位置，返回屏幕中心默认值
+    final screenSize = MediaQuery.of(context).size;
+    const defaultWidth = 110.0;
+    const defaultHeight = 80.0;
+    return Rect.fromLTWH(
+      (screenSize.width - defaultWidth) / 2,
+      (screenSize.height - defaultHeight) / 2,
+      defaultWidth,
+      defaultHeight,
     );
   }
 
