@@ -66,6 +66,12 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
   /// 当前相册中的视频列表
   List<AssetEntity> _videos = [];
 
+  /// 视频列表加载的页码（每页50个）
+  int _currentPage = 0;
+
+  /// 是否还有更多视频可以加载
+  bool _hasMoreVideos = true;
+
   /// 用户选中的视频集合
   final Set<AssetEntity> _selectedVideos = {};
 
@@ -87,7 +93,10 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
   /// 相册列表滚动控制器
   final ScrollController _albumScrollController = ScrollController();
 
-  /// 是否正在加载
+  /// 视频列表滚动控制器（用于上滑加载更多）
+  final ScrollController _videoScrollController = ScrollController();
+
+  /// 是否正在加载更多视频
   bool _isLoading = true;
 
   /// 已加载缩略图的视频ID集合
@@ -104,11 +113,25 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
     } else {
       _loadAlbums();
     }
+    // 添加滚动监听用于上滑加载更多
+    _videoScrollController.addListener(_onVideoScroll);
+  }
+
+  /// 滚动监听回调 - 实现上滑加载更多
+  void _onVideoScroll() {
+    if (_isLoading || !_hasMoreVideos) return;
+
+    // 当滚动到距离底部100像素时加载更多
+    if (_videoScrollController.position.pixels >=
+        _videoScrollController.position.maxScrollExtent - 100) {
+      _loadVideos();
+    }
   }
 
   @override
   void dispose() {
     _albumScrollController.dispose();
+    _videoScrollController.dispose();
     super.dispose();
   }
 
@@ -144,8 +167,8 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
     if (albums.isNotEmpty) {
       _albums = albums;
       _selectedAlbum = albums.first;
-      // 先加载视频列表
-      await _loadVideos();
+      // 先加载第一批视频（分页）
+      await _loadVideos(refresh: true);
       // 预加载第一批缩略图（屏幕可见的数量）
       await _preloadThumbnails();
       if (mounted) {
@@ -156,20 +179,68 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
     }
   }
 
-  /// 加载当前相册中的视频列表
-  Future<void> _loadVideos() async {
+  /// 加载当前相册中的视频列表（分页加载）
+  Future<void> _loadVideos({bool refresh = false}) async {
     if (Platform.isMacOS || _selectedAlbum == null) return;
 
+    if (refresh) {
+      _currentPage = 0;
+      _hasMoreVideos = true;
+    }
+
+    if (!_hasMoreVideos) return;
+
     try {
+      // 每页加载50个视频
+      const pageSize = 50;
+      final start = _currentPage * pageSize;
+      final end = start + pageSize;
+
       final List<AssetEntity> videos = await _selectedAlbum!.getAssetListRange(
-        start: 0,
-        end: 1000,
+        start: start,
+        end: end,
       );
+
       if (!mounted) return;
-      setState(() => _videos = videos);
+
+      setState(() {
+        if (refresh) {
+          _videos = videos;
+        } else {
+          _videos = [..._videos, ...videos];
+        }
+        // 如果返回的数量少于pageSize，说明没有更多了
+        _hasMoreVideos = videos.length >= pageSize;
+        _currentPage++;
+      });
+
+      // 加载完新视频后，预加载它们的缩略图
+      if (videos.isNotEmpty) {
+        await _preloadThumbnailsForRange(videos);
+      }
     } catch (e) {
       debugPrint('Video list load failed: $e');
       if (mounted) setState(() => _videos = []);
+    }
+  }
+
+  /// 为指定范围的视频预加载缩略图
+  Future<void> _preloadThumbnailsForRange(List<AssetEntity> videoRange) async {
+    if (videoRange.isEmpty) return;
+
+    final futures = <Future>[];
+    // 每次最多预加载20个
+    final preloadCount = videoRange.length < 20 ? videoRange.length : 20;
+
+    for (int i = 0; i < preloadCount; i++) {
+      final video = videoRange[i];
+      if (_thumbnailCache.containsKey(video.id)) continue;
+
+      futures.add(_loadSingleThumbnail(video));
+    }
+
+    if (futures.isNotEmpty) {
+      await Future.wait(futures);
     }
   }
 
@@ -651,7 +722,7 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
       _isLoading = true;
     });
 
-    await _loadVideos();
+    await _loadVideos(refresh: true);
     await _preloadThumbnails();
 
     if (mounted) {
@@ -703,6 +774,7 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
                   ),
                 )
               : GridView.builder(
+                  controller: _videoScrollController,
                   padding: const EdgeInsets.all(2),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,

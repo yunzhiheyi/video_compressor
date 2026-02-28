@@ -76,6 +76,25 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
     on<_ProcessQueue>(_onProcessQueue);
   }
 
+  /// 将分辨率字符串转换为目标高度
+  ///
+  /// 分辨率设置：只设置targetHeight，让FFmpeg根据视频方向自动计算宽度
+  /// 720p 表示视频的短边为720像素
+  int? _parseResolutionToTargetHeight(String? resolutionStr) {
+    switch (resolutionStr) {
+      case '480P':
+        return 480;
+      case '720P':
+        return 720;
+      case '1080P':
+        return 1080;
+      case 'Original':
+        return null; // 保持原始分辨率
+      default:
+        return 1080;
+    }
+  }
+
   /// 加载默认配置
   ///
   /// 从本地存储读取用户设置的默认质量和分辨率
@@ -100,24 +119,7 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
 
     // 分辨率设置：只设置targetHeight，让FFmpeg根据视频方向自动计算宽度
     // 720p 表示视频的短边为720像素
-    int? targetHeight;
-    switch (resolutionStr) {
-      case '480P':
-        targetHeight = 480;
-        break;
-      case '720P':
-        targetHeight = 720;
-        break;
-      case '1080P':
-        targetHeight = 1080;
-        break;
-      case 'Original':
-        // 保持原始分辨率
-        targetHeight = null;
-        break;
-      default:
-        targetHeight = 1080;
-    }
+    final targetHeight = _parseResolutionToTargetHeight(resolutionStr);
 
     final config = CompressConfig(
       quality: quality,
@@ -254,25 +256,8 @@ class LocalCompressBloc extends Bloc<LocalCompressEvent, LocalCompressState> {
         quality = CompressQuality.medium;
     }
 
-    int? targetHeight;
-    switch (resolutionStr) {
-      case '480P':
-        targetHeight = 480;
-        break;
-      case '720P':
-        targetHeight = 720;
-        break;
-      case '1080P':
-        targetHeight = 1080;
-        break;
-      case 'Original':
-        targetHeight = null;
-        break;
-      default:
-        targetHeight = 1080;
-    }
-
     // 使用最新的配置
+    final targetHeight = _parseResolutionToTargetHeight(resolutionStr);
     final latestConfig = CompressConfig(
       quality: quality,
       targetHeight: targetHeight,

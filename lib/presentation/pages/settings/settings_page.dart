@@ -1,8 +1,7 @@
-/// Settings page UI implementation.
+/// 设置页面UI实现
 ///
-/// This page provides the user interface for configuring application settings
-/// including default compression quality, output resolution, and cache management.
-/// Uses BLoC pattern for state management.
+/// 该页面提供配置应用程序设置的界面，包括默认压缩质量、输出分辨率和缓存管理。
+/// 使用BLoC模式进行状态管理。
 library;
 
 import 'package:flutter/material.dart';
@@ -13,12 +12,12 @@ import '../../../utils/app_toast.dart';
 import 'settings_bloc.dart';
 import 'settings_state.dart';
 
-/// Settings page widget for configuring application preferences.
+/// 设置页面组件，用于配置应用程序首选项
 ///
-/// Displays settings organized into sections:
-/// - Default Settings: Quality and resolution presets
-/// - Storage: Output directory and cache management
-/// - About: Application version and information
+/// 展示分组后的设置项：
+/// - 默认设置：质量和分辨率预设
+/// - 存储：输出目录和缓存管理
+/// - 关于：应用程序版本和信息
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -141,10 +140,10 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  /// Builds a settings section with a title and list of children.
+  /// 构建设置分区，包含标题和子组件列表
   ///
-  /// [title] - The section header text displayed in primary color.
-  /// [children] - List of widgets (typically ListTiles) for this section.
+  /// [title] - 以主色显示的分区标题文本
+  /// [children] - 该分区的组件列表（通常为 ListTiles）
   Widget _buildSection({
     required String title,
     required List<Widget> children,
@@ -168,12 +167,12 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  /// Builds a dropdown list tile for selecting from a list of options.
+  /// 构建下拉列表瓦片，用于从选项列表中选择
   ///
-  /// [title] - The label text displayed on the left.
-  /// [value] - The currently selected value.
-  /// [items] - List of available options to choose from.
-  /// [onChanged] - Callback when the selection changes.
+  /// [title] - 左侧显示的标签文本
+  /// [value] - 当前选中的值
+  /// [items] - 可供选择的选项列表
+  /// [onChanged] - 选择变更时的回调
   Widget _buildDropdownTile({
     required String title,
     required String value,
@@ -194,12 +193,12 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  /// Formats a byte count into a human-readable string.
+  /// 格式化字节数为可读字符串
   ///
-  /// Converts bytes to KB or MB with appropriate units.
+  /// 将字节转换为 KB 或 MB 并选择合适的单位
   ///
-  /// [bytes] - The size in bytes to format.
-  /// Returns a formatted string like "1.5 MB" or "256 KB".
+  /// [bytes] - 要格式化的字节大小
+  /// 返回格式化后的字符串，如 "1.5 MB" 或 "256 KB"
   String _formatCacheSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';

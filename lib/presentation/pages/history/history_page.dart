@@ -1,8 +1,7 @@
-/// History page UI implementation.
+/// 历史记录页面UI实现
 ///
-/// This page displays the compression history showing all previously
-/// compressed videos with their original/compressed sizes and compression ratios.
-/// Users can view details, delete individual records, or clear all history.
+/// 该页面展示所有已压缩视频的历史记录，包括原始/压缩后大小和压缩比率。
+/// 用户可以查看详情、删除单条记录或清除所有历史记录。
 library;
 
 import 'package:flutter/material.dart';
@@ -12,15 +11,15 @@ import '../../../core/constants/app_strings.dart';
 import 'history_bloc.dart';
 import 'history_state.dart';
 
-/// History page widget for displaying compression records.
+/// 历史记录页面组件
 ///
-/// Shows a list of [HistoryItem]s with:
-/// - Video file name
-/// - Compression ratio badge
-/// - Original and compressed sizes
-/// - Compression timestamp
+/// 展示 [HistoryItem] 列表，包括：
+/// - 视频文件名
+/// - 压缩比率标签
+/// - 原始和压缩后大小
+/// - 压缩时间戳
 ///
-/// Empty state is shown when no history exists.
+/// 当没有历史记录时显示空状态。
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
 
@@ -49,9 +48,9 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  /// Builds the empty state displayed when no history exists.
+  /// 构建空状态显示
   ///
-  /// Shows a history icon and helpful message to the user.
+  /// 显示历史图标和提示信息。
   Widget _buildEmptyState() {
     return const Center(
       child: Column(
@@ -68,9 +67,9 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  /// Builds the list of history items.
+  /// 构建历史记录列表
   ///
-  /// [items] - The list of [HistoryItem]s to display.
+  /// [items] - 要展示的 [HistoryItem] 列表。
   Widget _buildHistoryList(List<HistoryItem> items) {
     return ListView.builder(
       itemCount: items.length,
@@ -81,12 +80,11 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  /// Builds a single history item card.
+  /// 构建单个历史记录卡片
   ///
-  /// Displays the video name, compression ratio, size comparison,
-  /// and compression date. Tapping shows detailed information.
+  /// 展示视频名称、压缩比率、大小比较和压缩日期。点击显示详细信息。
   ///
-  /// [item] - The [HistoryItem] to display.
+  /// [item] - 要展示的 [HistoryItem]。
   Widget _buildHistoryItem(BuildContext context, HistoryItem item) {
     return GestureDetector(
       onTap: () => _showItemDetail(context, item),
@@ -182,18 +180,18 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  /// Shows a bottom sheet with detailed information about a history item.
+  /// 显示历史记录的详情底部表单
   ///
-  /// Displays all available information including:
-  /// - File name
-  /// - Original and compressed sizes
-  /// - Compression ratio
-  /// - Compression date
-  /// - Resolution information (if available)
-  /// - Output file path
-  /// - Delete button
+  /// 展示所有可用信息，包括：
+  /// - 文件名
+  /// - 原始和压缩后大小
+  /// - 压缩比率
+  /// - 压缩日期
+  /// - 分辨率信息（如有）
+  /// - 输出文件路径
+  /// - 删除按钮
   ///
-  /// [item] - The [HistoryItem] to show details for.
+  /// [item] - 要展示详情的 [HistoryItem]。
   void _showItemDetail(BuildContext context, HistoryItem item) {
     showModalBottomSheet(
       context: context,
@@ -250,10 +248,10 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  /// Builds a single row in the detail bottom sheet.
+  /// 构建详情底部表单中的单行
   ///
-  /// [label] - The label text displayed on the left.
-  /// [value] - The value text displayed on the right.
+  /// [label] - 左侧显示的标签文本
+  /// [value] - 右侧显示的值文本
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -274,9 +272,9 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  /// Shows a confirmation dialog before deleting a history item.
+  /// 显示删除历史记录前的确认对话框
   ///
-  /// [item] - The [HistoryItem] to potentially delete.
+  /// [item] - 要删除的 [HistoryItem]。
   void _showDeleteConfirmation(BuildContext context, HistoryItem item) {
     showDialog(
       context: context,
@@ -300,12 +298,12 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  /// Formats a byte count into a human-readable string.
+  /// 格式化字节数为可读字符串
   ///
-  /// Converts bytes to B, KB, MB, or GB with appropriate units.
+  /// 将字节转换为 B, KB, MB 或 GB 并选择合适的单位
   ///
-  /// [bytes] - The size in bytes to format.
-  /// Returns a formatted string like "1.50 MB" or "256.0 KB".
+  /// [bytes] - 要格式化的字节大小
+  /// 返回格式化后的字符串，如 "1.50 MB" 或 "256.0 KB"
   String _formatSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
@@ -315,17 +313,17 @@ class HistoryPage extends StatelessWidget {
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 
-  /// Formats a DateTime into a readable string.
+  /// 格式化日期时间为可读字符串
   ///
-  /// Format: "YYYY-MM-DD HH:MM"
+  /// 格式: "YYYY-MM-DD HH:MM"
   ///
-  /// [date] - The DateTime to format.
+  /// [date] - 要格式化的 DateTime
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '
         '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
-  /// Shows a confirmation dialog before clearing all history.
+  /// 显示清除所有历史记录前的确认对话框
   void _showClearConfirmation(BuildContext context) {
     showDialog(
       context: context,

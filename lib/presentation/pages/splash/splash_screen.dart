@@ -114,171 +114,173 @@ class _SplashScreenState extends State<SplashScreen>
     final iconSize = isDesktop ? 60.0 : 52.0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppColors.background,
-                AppColors.background.withBlue(20),
-              ],
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.background,
+                  AppColors.background.withBlue(20),
+                ],
+              ),
             ),
-          ),
-          child: SafeArea(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Spacer(flex: 2),
+            child: SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Spacer(flex: 2),
 
-                  // Logo 动画
-                  Transform.translate(
-                    offset: const Offset(0, -80),
-                  child: AnimatedBuilder(
-                    animation: _logoController,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: _logoOpacity.value,
-                        child: Transform.scale(
-                          scale: _logoScale.value,
-                          child: Container(
-                            width: logoSize,
-                            height: logoSize,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  AppColors.primary,
-                                  AppColors.primaryDark,
-                                ],
+                    // Logo 动画
+                    Transform.translate(
+                      offset: const Offset(0, -80),
+                      child: AnimatedBuilder(
+                        animation: _logoController,
+                        builder: (context, child) {
+                          return Opacity(
+                            opacity: _logoOpacity.value,
+                            child: Transform.scale(
+                              scale: _logoScale.value,
+                              child: Container(
+                                width: logoSize,
+                                height: logoSize,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primaryDark,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.3),
+                                      blurRadius: 30,
+                                      spreadRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.compress,
+                                  size: iconSize,
+                                  color: Colors.white,
+                                ),
                               ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.3),
-                                  blurRadius: 30,
-                                  spreadRadius: 5,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 22),
+
+                    // 进度条动画
+                    AnimatedBuilder(
+                      animation: _progressController,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: 0.8,
+                          child: Transform.translate(
+                            offset: const Offset(0, -70),
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  width: isDesktop ? 200 : 160,
+                                  height: 3,
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      FractionallySizedBox(
+                                        alignment: Alignment.centerLeft,
+                                        widthFactor: _progressValue.value,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                AppColors.primary,
+                                                AppColors.primaryLight,
+                                              ],
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(2),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  '${(_progressValue.value * 100).toStringAsFixed(0)}%',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontSize: isDesktop ? 16 : 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ],
                             ),
-                            child: Icon(
-                              Icons.compress,
-                              size: iconSize,
-                              color: Colors.white,
-                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                        );
+                      },
+                    ),
 
-                const SizedBox(height: 22),
+                    const Spacer(),
 
-                // 进度条动画
-                AnimatedBuilder(
-                  animation: _progressController,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: 0.8,
-                      child: Transform.translate(
-                        offset: const Offset(0, -70),
+                    // 底部文字动画
+                    SlideTransition(
+                      position: _textSlide,
+                      child: FadeTransition(
+                        opacity: _textOpacity,
                         child: Column(
                           children: [
-                            SizedBox(
-                              width: isDesktop ? 200 : 160,
-                              height: 3,
-                              child: Stack(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: _progressValue.value,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        gradient: const LinearGradient(
-                                          colors: [
-                                            AppColors.primary,
-                                            AppColors.primaryLight,
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(2),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            Text(
+                              'Video Compressor',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isDesktop ? 24 : 20,
+                                fontWeight: FontWeight.normal,
+                                letterSpacing: 1,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
                             Text(
-                              '${(_progressValue.value * 100).toStringAsFixed(0)}%',
+                              'Compress. Save. Share.',
                               style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: isDesktop ? 16 : 14,
-                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: isDesktop ? 14 : 12,
+                                letterSpacing: 2,
                               ),
                             ),
                           ],
                         ),
                       ),
-                    );
-                  },
-                ),
-
-                const Spacer(),
-
-                // 底部文字动画
-                SlideTransition(
-                  position: _textSlide,
-                  child: FadeTransition(
-                    opacity: _textOpacity,
-                    child: Column(
-                      children: [
-                        Text(
-                          'Video Compressor',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: isDesktop ? 24 : 20,
-                            fontWeight: FontWeight.normal,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Compress. Save. Share.',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6),
-                            fontSize: isDesktop ? 14 : 12,
-                            letterSpacing: 2,
-                          ),
-                        ),
-                      ],
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 48),
-              ],
+                    const SizedBox(height: 48),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 }

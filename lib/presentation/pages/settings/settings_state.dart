@@ -1,40 +1,38 @@
-/// Settings feature state management.
+/// 设置功能状态管理
 ///
-/// This file defines the state class for the application settings feature.
-/// Contains user preferences for compression quality, resolution, and storage.
+/// 该文件定义了应用程序设置功能的状态类。包含用户对压缩质量、分辨率和存储的首选项。
 library;
 
 import 'package:equatable/equatable.dart';
 
-/// State class for application settings.
+/// 应用程序设置的状态类
 ///
-/// Holds all user-configurable settings that affect default compression
-/// behavior and storage management. Extends [Equatable] for efficient
-/// state comparison in BLoC.
+/// 保存所有用户可配置的设置，这些设置会影响默认压缩行为和存储管理。
+/// 继承 [Equatable] 以在 BLoC 中实现高效的状态比较
 class SettingsState extends Equatable {
-  /// Default compression quality preset.
+  /// 默认压缩质量预设
   ///
-  /// Possible values: 'Low', 'Medium', 'High'.
+  /// 可能的值：'Low', 'Medium', 'High'
   final String defaultQuality;
 
-  /// Default output resolution for compressed videos.
+  /// 压缩视频的默认输出分辨率
   ///
-  /// Possible values: '480P', '720P', '1080P', 'Original'.
+  /// 可能的值：'480P', '720P', '1080P', 'Original'
   final String defaultResolution;
 
-  /// Directory path where compressed videos are saved.
+  /// 压缩视频保存的目录路径
   ///
-  /// Empty string indicates the default output directory is being used.
+  /// 空字符串表示使用默认输出目录
   final String outputDirectory;
 
-  /// Current cache size in bytes.
+  /// 当前缓存大小（以字节为单位）
   ///
-  /// Used to display cache usage and enable clearing when needed.
+  /// 用于显示缓存使用情况并在需要时启用清除功能
   final int cacheSize;
 
-  /// Creates a new [SettingsState] with the specified settings.
+  /// 使用指定设置创建新的 [SettingsState]
   ///
-  /// All parameters have sensible defaults for first-time app launch.
+  /// 所有参数都有首次启动时的合理默认值
   const SettingsState({
     this.defaultQuality = 'Medium',
     this.defaultResolution = '1080P',
@@ -42,9 +40,9 @@ class SettingsState extends Equatable {
     this.cacheSize = 0,
   });
 
-  /// Creates a copy of this state with optionally updated fields.
+  /// 创建此状态的副本，可选择更新字段
   ///
-  /// Any field not provided will retain its current value.
+  /// 未提供的任何字段将保留其当前值
   SettingsState copyWith({
     String? defaultQuality,
     String? defaultResolution,

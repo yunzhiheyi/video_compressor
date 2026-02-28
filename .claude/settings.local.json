@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude --version)",
+      "Bash(npm update -g @anthropic-ai/claude-code)",
+      "Bash(flutter analyze lib/presentation/pages/local_compress/local_compress_bloc.dart 2>&1 | head -30)",
+      "Bash(flutter analyze lib/presentation/pages/history/history_page.dart lib/presentation/pages/settings/settings_page.dart lib/presentation/widgets/video_picker_page.dart lib/presentation/pages/local_compress/local_compress_bloc.dart 2>&1 | tail -20)",
+      "Bash(flutter analyze lib/presentation/pages/settings/settings_bloc.dart lib/presentation/pages/settings/settings_state.dart lib/presentation/pages/settings/settings_page.dart lib/presentation/pages/history/history_page.dart 2>&1 | tail -10)",
+      "Bash(compaudit)",
+      "Bash(chmod 755 \"~/Downloads/】HOUSEBELL】市场宣传图\")",
+      "Bash(chmod 755 /Users/hejun/Downloads/\\\\'\\\\]HOUSEBELL\\\\'\\\\]市场宣传图)",
+      "Bash(chmod 755 /Users/hejun/.V2rayU /Users/hejun/.V2rayU/pac /Users/hejun/.V2rayU/v2ray-core)",
+      "Bash(chmod 755 \"/Users/hejun/Library/Application Support/Droid4X\" \"/Users/hejun/Library/Application Support/Adobe\" \"/Users/hejun/Library/Preferences/Adobe Photoshop Elements 24 Settings\" \"/Users/hejun/Library/Caches/GeoServices\" \"/Users/hejun/Library/Caches/vscode-cpptools\")"
+    ]
+  }
+}
