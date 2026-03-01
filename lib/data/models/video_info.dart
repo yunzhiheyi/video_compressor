@@ -60,6 +60,32 @@ class VideoInfo extends Equatable {
     this.thumbnailBytes,
   });
 
+  /// 获取显示时的宽度（考虑旋转）
+  int? get orientatedWidth {
+    if (width == null || height == null) return null;
+    if (rotation != null && (rotation!.abs() == 90 || rotation!.abs() == 270)) {
+      return height;
+    }
+    return width;
+  }
+
+  /// 获取显示时的高度（考虑旋转）
+  int? get orientatedHeight {
+    if (width == null || height == null) return null;
+    if (rotation != null && (rotation!.abs() == 90 || rotation!.abs() == 270)) {
+      return width;
+    }
+    return height;
+  }
+
+  /// 获取显示时的宽高比（考虑旋转）
+  double? get orientatedAspectRatio {
+    final w = orientatedWidth;
+    final h = orientatedHeight;
+    if (w == null || h == null || h == 0) return null;
+    return w / h;
+  }
+
   /// 获取分辨率字符串（如 "1920×1080"）
   ///
   /// 考虑旋转元数据，返回显示时的实际分辨率

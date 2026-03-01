@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../data/models/compress_task.dart';
+import '../../data/models/video_info.dart';
 import '../../services/ffmpeg_service.dart';
 import '../../utils/app_toast.dart';
 import '../pages/local_compress/local_compress_bloc.dart';
@@ -17,6 +18,7 @@ import '../widgets/video_list_item.dart';
 import '../widgets/task_detail_dialog.dart';
 import '../widgets/animated_entry_list.dart';
 import '../widgets/animated_removable_item.dart';
+import 'video_overlay_player.dart';
 
 enum VideoCompressStyle { mobile, desktop }
 
@@ -160,12 +162,21 @@ class VideoCompressContentState extends State<VideoCompressContent>
         final task =
             state.tasks.where((t) => t.video.path == video.path).firstOrNull;
 
+        // 移动端点击缩略图时使用 overlay player 播放视频（带 Hero 动画）
+        final onTapThumbnailWithRect = widget.style == VideoCompressStyle.mobile
+            ? (VideoInfo v, Rect rect) => _playVideoWithOverlay(context, v, rect)
+            : null;
+        final onTapThumbnail = widget.style == VideoCompressStyle.desktop
+            ? () => playVideo(context, video.path)
+            : null;
+
         final listItem = VideoListItem(
           video: video,
           task: task,
           ffmpegService: ffmpegService,
           isDesktop: widget.style == VideoCompressStyle.desktop,
-          onTapThumbnail: () => playVideo(context, video.path),
+          onTapThumbnail: onTapThumbnail,
+          onTapThumbnailWithRect: onTapThumbnailWithRect,
           onTapDetail: task != null && task.isComplete
               ? () => showTaskDetail(
                   context, task, widget.style == VideoCompressStyle.desktop)
@@ -376,6 +387,27 @@ class VideoCompressContentState extends State<VideoCompressContent>
       MaterialPageRoute(
         builder: (context) => VideoPlayerPage(videoPath: path),
       ),
+    );
+  }
+
+  /// 移动端使用 overlay player 播放视频
+  ///
+  /// [video] 视频信息
+  /// [thumbnailRect] 缩略图在屏幕上的位置，用于 Hero 动画
+  void _playVideoWithOverlay(
+    BuildContext context,
+    VideoInfo video,
+    Rect thumbnailRect,
+  ) {
+    // 使用考虑旋转后的宽高比
+    final aspectRatio = video.orientatedAspectRatio ?? 16 / 9;
+
+    showVideoOverlay(
+      context: context,
+      videoPath: video.path,
+      startRect: thumbnailRect,
+      thumbnail: video.thumbnailBytes,
+      aspectRatio: aspectRatio,
     );
   }
 

@@ -420,11 +420,13 @@ class _VideoOverlayViewState extends State<_VideoOverlayView>
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // 缩略图
+                      // 缩略图 - 填满容器，随动画容器形状变化
                       if (widget.thumbnail != null)
-                        Image.memory(
-                          widget.thumbnail!,
-                          fit: BoxFit.cover,
+                        Positioned.fill(
+                          child: Image.memory(
+                            widget.thumbnail!,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       // 视频播放器
                       if (_videoReady && _showVideo && _fadeController != null)

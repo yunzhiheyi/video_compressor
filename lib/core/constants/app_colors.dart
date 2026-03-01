@@ -5,6 +5,7 @@
 /// - 主题色
 /// - 文字颜色
 /// - 状态颜色（成功、错误、警告）
+library;
 import 'package:flutter/material.dart';
 
 /// 应用颜色常量类

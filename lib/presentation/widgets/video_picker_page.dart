@@ -169,8 +169,8 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
       _selectedAlbum = albums.first;
       // 先加载第一批视频（分页）
       await _loadVideos(refresh: true);
-      // 预加载第一批缩略图（屏幕可见的数量）
-      await _preloadThumbnails();
+      // 异步预加载第一批缩略图（不阻塞UI）
+      _preloadThumbnails();
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -214,9 +214,9 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
         _currentPage++;
       });
 
-      // 加载完新视频后，预加载它们的缩略图
+      // 加载完新视频后，异步预加载缩略图（不阻塞UI）
       if (videos.isNotEmpty) {
-        await _preloadThumbnailsForRange(videos);
+        _preloadThumbnailsForRange(videos);
       }
     } catch (e) {
       debugPrint('Video list load failed: $e');
@@ -229,8 +229,8 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
     if (videoRange.isEmpty) return;
 
     final futures = <Future>[];
-    // 每次最多预加载20个
-    final preloadCount = videoRange.length < 20 ? videoRange.length : 20;
+    // 每次最多预加载15个（屏幕可见区域 + 缓冲）
+    final preloadCount = videoRange.length < 15 ? videoRange.length : 15;
 
     for (int i = 0; i < preloadCount; i++) {
       final video = videoRange[i];
@@ -248,8 +248,8 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
   Future<void> _preloadThumbnails() async {
     if (_videos.isEmpty) return;
 
-    // 预加载前18个（3列x6行）
-    final preloadCount = _videos.length < 18 ? _videos.length : 18;
+    // 预加载前9个（3列x3行，屏幕可见区域）
+    final preloadCount = _videos.length < 9 ? _videos.length : 9;
     final futures = <Future>[];
 
     for (int i = 0; i < preloadCount; i++) {
@@ -267,9 +267,14 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
   /// 加载单个缩略图
   Future<void> _loadSingleThumbnail(AssetEntity video) async {
     try {
-      final thumbnail =
-          await video.thumbnailDataWithSize(const ThumbnailSize(200, 200));
-      final file = await video.file;
+      // 并行加载缩略图和文件路径，提升加载速度
+      final results = await Future.wait([
+        video.thumbnailDataWithSize(const ThumbnailSize(200, 200)),
+        video.file,
+      ]);
+
+      final thumbnail = results[0] as Uint8List?;
+      final file = results[1] as File?;
 
       if (file != null) {
         _videoPathCache[video.id] = file.path;
@@ -330,13 +335,13 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
           'path': file.path,
           'name': file.path.split('/').last,
           'thumbnailBytes': _thumbnailCache[video.id],
-          'width': video.width,
-          'height': video.height,
+          'width': video.orientatedWidth,
+          'height': video.orientatedHeight,
           'duration': video.duration.toDouble(),
           'size': fileSize,
           'bitrate': bitrate,
           'frameRate': frameRate,
-          'rotation': null, // photo_manager 的尺寸已经是显示尺寸
+          'rotation': null, // 已使用 orientated 尺寸，无需再处理旋转
         });
       }
     }
@@ -723,7 +728,8 @@ class _VideoPickerPageState extends State<VideoPickerPage> {
     });
 
     await _loadVideos(refresh: true);
-    await _preloadThumbnails();
+    // 异步预加载缩略图（不阻塞UI）
+    _preloadThumbnails();
 
     if (mounted) {
       setState(() => _isLoading = false);

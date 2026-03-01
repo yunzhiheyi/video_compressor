@@ -259,14 +259,24 @@ class _VideoListItemState extends State<VideoListItem> {
 
   /// 构建缩略图
   Widget _buildThumbnail() {
+    // 根据视频比例计算缩略图尺寸（固定高度80）
+    double thumbnailWidth = 100;
+    const thumbnailHeight = 80.0;
+
+    // final aspectRatio = widget.video.orientatedAspectRatio;
+    // if (aspectRatio != null && aspectRatio > 0) {
+    //   // 限制宽度范围在 60-150 之间
+    //   thumbnailWidth = (thumbnailHeight * aspectRatio).clamp(60.0, 150.0);
+    // }
+
     return GestureDetector(
       key: _thumbnailKey,
       onTap: _handleThumbnailTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          width: 110,
-          height: 80,
+          width: thumbnailWidth,
+          height: thumbnailHeight,
           color: AppColors.primary.withValues(alpha: 0.1),
           child: Stack(
             children: [
